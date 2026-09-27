@@ -7,6 +7,8 @@ import { NavHeader, MobileBottomNav } from "./nav-header";
 import { VerificationBanner } from "./verification-banner";
 import { CardSkeleton } from "@/components/ui/skeleton";
 
+import { PageTransition } from "./page-transition";
+
 export function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
@@ -38,7 +40,7 @@ export function AuthenticatedLayout({ children }: { children: React.ReactNode })
       <NavHeader />
       <VerificationBanner />
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {children}
+        <PageTransition>{children}</PageTransition>
       </main>
       <MobileBottomNav />
     </div>

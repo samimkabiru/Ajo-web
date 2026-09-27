@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -16,6 +16,8 @@ import { CardSkeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/auth-context";
 import { formatKobo, formatPoolBalance } from "@/lib/money";
 import { GroupSummary, RoundSummary, GroupInviteSummary } from "@/lib/api/types";
+import { ViewToggle, ViewMode } from "@/components/common/view-toggle";
+import { CreateGroupModal } from "@/components/groups/create-group-modal";
 import {
   Coins,
   Users,
@@ -33,6 +35,8 @@ import {
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Fetch user's groups
   const { data: groups, isLoading: isGroupsLoading } = useQuery({
@@ -63,12 +67,14 @@ export default function DashboardPage() {
             </h1>
           </div>
 
-          <Link href="/groups">
-            <Button variant="primary" size="sm">
-              <Plus className="w-4 h-4 mr-1.5" />
-              New Circle
-            </Button>
-          </Link>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setIsCreateModalOpen(true)}
+          >
+            <Plus className="w-4 h-4 mr-1.5" />
+            New Circle
+          </Button>
         </div>
 
         {/* Pending Invites Alert Banner */}
@@ -104,37 +110,48 @@ export default function DashboardPage() {
         ) : userGroups.length > 0 ? (
           <>
             {/* The One Leading Metric Card per Section 9 */}
-            <Card className="p-6 sm:p-8 bg-primary text-white border-transparent shadow-elevation relative overflow-hidden">
+            <div className="vault-card rounded-[18px] p-6 sm:p-8 text-white relative shadow-vault overflow-hidden">
+              <div className="absolute top-4 right-5 text-white/5 pointer-events-none">
+                <Coins className="w-40 h-40 -mr-10 -mt-10" />
+              </div>
+
               <div className="relative z-10">
-                <span className="text-xs font-semibold uppercase tracking-wider text-white/70 block mb-1">
-                  Active Savings Circles
-                </span>
-                <div className="font-heading font-extrabold text-3xl sm:text-5xl text-white tabular-nums tracking-tight">
-                  {userGroups.length} {userGroups.length === 1 ? "Circle" : "Circles"}
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-white/70">
+                    Your Savings Portfolio
+                  </span>
                 </div>
-                <p className="text-xs sm:text-sm text-white/80 mt-2 max-w-md">
-                  Rotational savings active across your groups. Each month guarantees a full lump-sum collection for one member.
+
+                <div className="font-heading font-black text-3xl sm:text-5xl text-white tabular-nums tracking-tight mb-2">
+                  {userGroups.length} Active {userGroups.length === 1 ? "Circle" : "Circles"}
+                </div>
+                <p className="text-xs sm:text-sm text-white/80 max-w-lg leading-relaxed">
+                  Rotational savings active across your groups. Each month guarantees a full lump-sum collection for one designated beneficiary.
                 </p>
 
                 <div className="pt-5 mt-5 border-t border-white/15 flex flex-wrap items-center gap-4 text-xs text-white/90">
-                  <div className="flex items-center gap-1.5">
-                    <ShieldCheck className="w-4 h-4 text-white" />
+                  <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
+                    <ShieldCheck className="w-3.5 h-3.5 text-accent" />
                     <span>Double-pay protected</span>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <TrendingUp className="w-4 h-4 text-white" />
+                  <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
+                    <TrendingUp className="w-3.5 h-3.5 text-positive" />
                     <span>Zero interest platform</span>
                   </div>
                 </div>
               </div>
-            </Card>
+            </div>
 
             {/* My Active Circles Section */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-heading font-bold text-lg text-ink">
-                  Your Circles
-                </h3>
+                <div className="flex items-center gap-3">
+                  <h3 className="font-heading font-bold text-lg text-ink">
+                    Your Circles
+                  </h3>
+                  <ViewToggle value={viewMode} onChange={setViewMode} />
+                </div>
                 <Link
                   href="/groups"
                   className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
@@ -143,51 +160,97 @@ export default function DashboardPage() {
                 </Link>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {userGroups.map((group) => (
-                  <Link key={group.id} href={`/groups/${group.id}`} className="block">
-                    <Card interactive className="p-5 flex flex-col justify-between h-full">
-                      <div>
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-10 h-10 rounded-xl bg-primary-tint text-primary flex items-center justify-center font-bold text-base">
-                              {group.name.charAt(0).toUpperCase()}
+              {viewMode === "grid" ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {userGroups.map((group) => (
+                    <Link key={group.id} href={`/groups/${group.id}`} className="block">
+                      <Card interactive className="p-5 flex flex-col justify-between h-full group">
+                        <div>
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-tint to-primary/10 border border-primary/20 text-primary flex items-center justify-center font-heading font-bold text-base shadow-xs">
+                                {group.name.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <h4 className="font-heading font-bold text-base text-ink line-clamp-1 group-hover:text-primary transition-colors">
+                                  {group.name}
+                                </h4>
+                                <span className="text-xs text-muted flex items-center gap-1">
+                                  <Users className="w-3 h-3 text-muted" />
+                                  {group.memberCount ?? 1} members
+                                </span>
+                              </div>
                             </div>
-                            <div>
-                              <h4 className="font-heading font-bold text-base text-ink line-clamp-1">
-                                {group.name}
-                              </h4>
-                              <span className="text-xs text-muted flex items-center gap-1">
-                                <Users className="w-3 h-3" />
-                                {group.memberCount ?? 1} members
-                              </span>
-                            </div>
+
+                            {group.hasActiveRound ? (
+                              <Badge variant="positive">Active Round</Badge>
+                            ) : (
+                              <Badge variant="neutral">Forming</Badge>
+                            )}
                           </div>
 
-                          {group.hasActiveRound ? (
-                            <Badge variant="positive">Active Round</Badge>
-                          ) : (
-                            <Badge variant="neutral">Forming</Badge>
+                          {group.description && (
+                            <p className="text-xs text-muted line-clamp-2 my-2 leading-relaxed">
+                              {group.description}
+                            </p>
                           )}
                         </div>
 
-                        {group.description && (
-                          <p className="text-xs text-muted line-clamp-2 my-2">
-                            {group.description}
-                          </p>
-                        )}
+                        <div className="pt-3 mt-3 border-t border-line/60 flex items-center justify-between text-xs text-muted">
+                          <span className="font-medium text-[11px]">Manage Circle</span>
+                          <span className="font-semibold text-primary flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                            Open <ArrowRight className="w-3.5 h-3.5" />
+                          </span>
+                        </div>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                /* List View */
+                <div className="bg-surface rounded-[14px] border border-line divide-y divide-line/60 overflow-hidden shadow-subtle">
+                  {userGroups.map((group) => (
+                    <Link
+                      key={group.id}
+                      href={`/groups/${group.id}`}
+                      className="flex items-center justify-between p-4 hover:bg-canvas/60 transition-colors group"
+                    >
+                      <div className="flex items-center gap-3.5 min-w-0 pr-4">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-tint to-primary/10 border border-primary/20 text-primary flex items-center justify-center font-heading font-bold text-base shrink-0 shadow-xs">
+                          {group.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-heading font-bold text-sm text-ink truncate group-hover:text-primary transition-colors">
+                              {group.name}
+                            </h4>
+                            {group.hasActiveRound ? (
+                              <Badge variant="positive" className="text-[10px] py-0">Active</Badge>
+                            ) : (
+                              <Badge variant="neutral" className="text-[10px] py-0">Forming</Badge>
+                            )}
+                          </div>
+                          {group.description ? (
+                            <p className="text-xs text-muted truncate max-w-md">
+                              {group.description}
+                            </p>
+                          ) : (
+                            <p className="text-xs text-muted">No description set</p>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="pt-3 mt-2 border-t border-line/60 flex items-center justify-between text-xs text-muted">
-                        <span>Circle Management</span>
-                        <span className="font-semibold text-primary flex items-center gap-1">
-                          Open circle <ArrowRight className="w-3 h-3" />
+                      <div className="flex items-center gap-4 shrink-0">
+                        <span className="text-xs text-muted flex items-center gap-1 hidden sm:flex">
+                          <Users className="w-3.5 h-3.5" />
+                          {group.memberCount ?? 1} members
                         </span>
+                        <ArrowRight className="w-4 h-4 text-muted group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
                       </div>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           </>
         ) : (
@@ -243,12 +306,14 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Link href="/groups">
-                <Button variant="primary" size="lg">
-                  <Plus className="w-4 h-4 mr-1.5" />
-                  Create a Circle Now
-                </Button>
-              </Link>
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={() => setIsCreateModalOpen(true)}
+              >
+                <Plus className="w-4 h-4 mr-1.5" />
+                Create a Circle Now
+              </Button>
               <Link href="/invites">
                 <Button variant="outline" size="lg">
                   Check Incoming Invites
@@ -258,6 +323,12 @@ export default function DashboardPage() {
           </Card>
         )}
       </div>
+
+      {/* Direct In-Place Create Group Modal */}
+      <CreateGroupModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
     </AuthenticatedLayout>
   );
 }

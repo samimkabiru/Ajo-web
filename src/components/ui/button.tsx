@@ -6,30 +6,32 @@ import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center font-medium transition-all duration-100 disabled:opacity-50 disabled:pointer-events-none select-none touch-press relative min-h-[44px] min-w-[44px] cursor-pointer",
+  "inline-flex items-center justify-center font-semibold tracking-tight transition-all duration-150 disabled:opacity-40 disabled:pointer-events-none select-none cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/25 relative",
   {
     variants: {
       variant: {
         primary:
-          "bg-primary text-white hover:bg-primary-dark active:bg-primary-dark shadow-sm border border-transparent",
+          "bg-gradient-to-b from-[#135E48] to-[#0E4F3C] text-white shadow-[0_1px_2px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.16)] hover:from-[#166B52] hover:to-[#105642] active:from-[#0B3E2F] active:to-[#083025] active:translate-y-[0.5px] border border-[#0B3D2F]",
         accent:
-          "bg-accent text-white hover:brightness-95 active:brightness-90 shadow-sm border border-transparent",
+          "bg-gradient-to-b from-[#E29334] to-[#D98A2B] text-white shadow-[0_1px_2px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.22)] hover:from-[#EA9B3C] hover:to-[#DF8F2F] active:from-[#C57A21] active:to-[#B66F1C] active:translate-y-[0.5px] border border-[#BF751F]",
         secondary:
-          "bg-primary-tint text-primary hover:bg-primary-tint/80 active:bg-primary-tint/70 border border-transparent",
+          "bg-primary-tint text-primary hover:bg-primary-tint/80 active:bg-primary-tint/60 border border-primary/15 shadow-2xs active:translate-y-[0.5px]",
         outline:
-          "border border-line bg-surface text-ink hover:bg-canvas active:bg-line/40 shadow-xs",
+          "border border-line bg-surface text-ink hover:bg-canvas hover:border-muted/30 active:bg-line/30 shadow-2xs active:translate-y-[0.5px]",
         ghost:
-          "text-ink hover:bg-canvas active:bg-line/30 border border-transparent",
+          "text-ink hover:bg-canvas active:bg-line/20 border border-transparent",
         danger:
-          "bg-danger text-white hover:brightness-90 active:brightness-85 shadow-sm border border-transparent",
+          "bg-gradient-to-b from-[#C42E25] to-[#B3261E] text-white shadow-[0_1px_2px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.18)] hover:from-[#CE342B] hover:to-[#BC2820] active:from-[#9E2019] active:to-[#8E1B15] active:translate-y-[0.5px] border border-[#9A1E17]",
         subtleDanger:
-          "bg-danger/10 text-danger hover:bg-danger/15 active:bg-danger/20 border border-transparent",
+          "bg-danger/8 text-danger hover:bg-danger/15 active:bg-danger/20 border border-danger/15 shadow-2xs",
       },
       size: {
-        sm: "h-9 px-3 text-xs rounded-[8px]",
-        default: "h-11 px-5 text-sm rounded-[10px]",
-        lg: "h-12 px-6 text-base rounded-[10px]",
-        icon: "h-11 w-11 p-0 rounded-[10px]",
+        xs: "h-7 px-2.5 text-[11px] rounded-[6px] gap-1",
+        sm: "h-8 px-3 text-xs rounded-[7px] gap-1.5",
+        default: "h-9 px-4 text-xs sm:text-sm rounded-[8px] gap-2",
+        lg: "h-10.5 px-5 text-sm rounded-[9px] gap-2",
+        icon: "h-8 w-8 p-0 rounded-[7px]",
+        iconSm: "h-7 w-7 p-0 rounded-[6px]",
       },
       fullWidth: {
         true: "w-full",
@@ -88,8 +90,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading ? (
-          <span className="flex items-center justify-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+          <span className="flex items-center justify-center gap-1.5">
+            <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
             <span>
               {loadingText || (longLoading ? "Still working..." : "Processing...")}
             </span>

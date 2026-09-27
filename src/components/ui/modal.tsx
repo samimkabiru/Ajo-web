@@ -43,17 +43,17 @@ export function Modal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.18 }}
             onClick={onClose}
-            className="fixed inset-0 bg-ink/40 backdrop-blur-xs"
+            className="fixed inset-0 bg-ink/35 backdrop-blur-sm"
           />
 
           {/* Modal Card / Bottom Sheet on mobile */}
           <motion.div
-            initial={{ y: "100%", opacity: 0.8 }}
+            initial={{ y: "100%", opacity: 0.9 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
-            transition={{ type: "spring", damping: 28, stiffness: 300, duration: 0.25 }}
+            transition={{ type: "spring", damping: 30, stiffness: 350, duration: 0.22 }}
             className={cn(
               "relative w-full rounded-t-[20px] sm:rounded-[16px] bg-surface p-6 shadow-elevation border border-line z-10 max-h-[90vh] overflow-y-auto",
               maxWidth

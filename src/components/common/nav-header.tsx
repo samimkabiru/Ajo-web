@@ -4,7 +4,16 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
-import { Users, LayoutDashboard, Mail, LogOut, ShieldCheck, ShieldAlert } from "lucide-react";
+import {
+  Users,
+  LayoutDashboard,
+  Mail,
+  LogOut,
+  ShieldCheck,
+  ShieldAlert,
+  Coins,
+  ChevronDown,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function NavHeader() {
@@ -13,26 +22,29 @@ export function NavHeader() {
 
   if (!user) {
     return (
-      <header className="sticky top-0 z-40 bg-surface/90 backdrop-blur-md border-b border-line px-4 sm:px-8 py-3.5 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 group touch-press">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-heading font-black text-lg shadow-sm">
+      <header className="sticky top-0 z-40 bg-surface/85 backdrop-blur-xl border-b border-line/60 px-4 sm:px-8 py-3 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2.5 group touch-press">
+          <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white font-heading font-black text-base shadow-sm ring-1 ring-white/20">
             A
           </div>
-          <span className="font-heading font-bold text-xl tracking-tight text-ink">
-            Ajo
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="font-heading font-extrabold text-xl tracking-tight text-ink">
+              Ajo
+            </span>
+            <span className="w-1.5 h-1.5 rounded-full bg-positive animate-pulse" />
+          </div>
         </Link>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <Link
             href="/login"
-            className="text-sm font-semibold text-muted hover:text-ink px-3 py-2 rounded-lg transition-colors touch-press"
+            className="text-xs sm:text-sm font-semibold text-muted hover:text-ink px-3 py-1.5 rounded-[8px] transition-colors touch-press"
           >
             Log in
           </Link>
           <Link
             href="/register"
-            className="text-sm font-semibold bg-primary text-white hover:bg-primary-dark px-4 py-2 rounded-[10px] transition-colors shadow-sm touch-press"
+            className="text-xs sm:text-sm font-semibold bg-primary text-white hover:bg-primary-dark px-3.5 py-1.5 rounded-[9px] transition-all shadow-xs touch-press"
           >
             Sign up
           </Link>
@@ -48,19 +60,24 @@ export function NavHeader() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-surface/90 backdrop-blur-md border-b border-line">
+    <header className="sticky top-0 z-40 bg-surface/85 backdrop-blur-xl border-b border-line/60">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <Link href="/dashboard" className="flex items-center gap-2 group touch-press">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-heading font-black text-lg shadow-sm">
+          {/* Jewel Brand Logo */}
+          <Link href="/dashboard" className="flex items-center gap-2.5 group touch-press">
+            <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white font-heading font-black text-base shadow-sm ring-1 ring-white/20 group-hover:scale-[1.03] transition-transform">
               A
             </div>
-            <span className="font-heading font-bold text-xl tracking-tight text-ink">
-              Ajo
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="font-heading font-extrabold text-lg tracking-tight text-ink">
+                Ajo
+              </span>
+              <span className="w-1.5 h-1.5 rounded-full bg-positive" title="Online" />
+            </div>
           </Link>
 
-          <nav className="hidden sm:flex items-center gap-1">
+          {/* Segmented Pill Navigation */}
+          <nav className="hidden sm:flex items-center p-1 rounded-[10px] bg-canvas border border-line/60">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const isActive = pathname.startsWith(link.href);
@@ -69,49 +86,64 @@ export function NavHeader() {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors touch-press",
+                    "flex items-center gap-1.5 px-3 py-1 rounded-[7px] text-xs font-semibold transition-all duration-120 touch-press",
                     isActive
-                      ? "bg-primary-tint text-primary font-semibold"
-                      : "text-muted hover:text-ink hover:bg-canvas"
+                      ? "bg-surface text-ink shadow-xs border border-line/40"
+                      : "text-muted hover:text-ink hover:bg-surface/50"
                   )}
                 >
-                  <Icon className="w-4 h-4" />
-                  {link.label}
+                  <Icon
+                    className={cn(
+                      "w-3.5 h-3.5 transition-colors",
+                      isActive ? "text-primary" : "text-muted"
+                    )}
+                  />
+                  <span>{link.label}</span>
                 </Link>
               );
             })}
           </nav>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Right Actions: Phone Status & Profile */}
+        <div className="flex items-center gap-2.5">
           <Link
             href="/verify-phone"
-            title={isPhoneVerified ? "Phone verified" : "Phone unverified"}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border touch-press transition-colors"
+            title={isPhoneVerified ? "Phone verified" : "Click to verify phone"}
+            className={cn(
+              "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all touch-press",
+              isPhoneVerified
+                ? "bg-positive-tint text-positive border border-positive/30 hover:bg-positive-tint/80"
+                : "bg-warning-tint text-warning border border-warning/30 hover:bg-warning-tint/80 animate-pulse"
+            )}
           >
             {isPhoneVerified ? (
-              <span className="flex items-center gap-1 text-positive">
+              <>
                 <ShieldCheck className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Verified</span>
-              </span>
+              </>
             ) : (
-              <span className="flex items-center gap-1 text-warning bg-warning/10 px-2 py-0.5 rounded-full border border-warning/20">
+              <>
                 <ShieldAlert className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Unverified</span>
-              </span>
+                <span className="hidden sm:inline">Verify Phone</span>
+              </>
             )}
           </Link>
 
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-primary-tint border border-primary/20 flex items-center justify-center text-xs font-bold text-primary">
+          {/* User Badge */}
+          <div className="flex items-center gap-2 pl-1 border-l border-line/60">
+            <div className="w-8 h-8 rounded-[9px] bg-gradient-to-br from-primary-tint to-primary/10 border border-primary/20 flex items-center justify-center text-xs font-heading font-bold text-primary shadow-xs">
               {user.fullName.charAt(0).toUpperCase()}
             </div>
+            <span className="text-xs font-bold text-ink hidden md:inline truncate max-w-[120px]">
+              {user.fullName.split(" ")[0]}
+            </span>
             <button
               onClick={() => logout()}
               title="Log out"
-              className="p-1.5 text-muted hover:text-danger rounded-lg transition-colors touch-press"
+              className="p-1.5 text-muted hover:text-danger rounded-[7px] hover:bg-canvas transition-colors touch-press"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -133,7 +165,7 @@ export function MobileBottomNav() {
   ];
 
   return (
-    <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-md border-t border-line px-4 py-2 flex items-center justify-around">
+    <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/90 backdrop-blur-xl border-t border-line/60 px-4 py-1.5 flex items-center justify-around shadow-elevation">
       {navLinks.map((link) => {
         const Icon = link.icon;
         const isActive = pathname.startsWith(link.href);
@@ -142,11 +174,13 @@ export function MobileBottomNav() {
             key={link.href}
             href={link.href}
             className={cn(
-              "flex flex-col items-center gap-1 py-1 px-3 rounded-lg text-xs font-medium transition-colors touch-press",
-              isActive ? "text-primary font-bold" : "text-muted hover:text-ink"
+              "flex flex-col items-center gap-0.5 py-1 px-3 rounded-[9px] text-[11px] font-semibold transition-all touch-press",
+              isActive
+                ? "text-primary font-bold scale-[1.05]"
+                : "text-muted hover:text-ink"
             )}
           >
-            <Icon className="w-5 h-5" />
+            <Icon className="w-4 h-4" />
             <span>{link.label}</span>
           </Link>
         );

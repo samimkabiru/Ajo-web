@@ -3,6 +3,13 @@
 import React, { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useIdempotencyKey } from "@/lib/idempotency";
 import { formatKobo } from "@/lib/money";
 import { apiContribute } from "@/lib/api/endpoints";
@@ -137,21 +144,33 @@ export function ContributeSheet({
                   <label className="block text-xs font-semibold uppercase tracking-wider text-muted">
                     Contribute for Member (Optional)
                   </label>
-                  <select
-                    value={selectedUserId}
-                    onChange={(e) => setSelectedUserId(e.target.value)}
-                    className="w-full min-h-[44px] rounded-[10px] border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  <Select
+                    value={selectedUserId || "myself"}
+                    onValueChange={(val) => setSelectedUserId(val === "myself" ? "" : val)}
                   >
-                    <option value="">Myself</option>
-                    {members.map((m) => {
-                      const mId = m.user?.id || (m as { userId?: string }).userId || "";
-                      return (
-                        <option key={mId} value={mId}>
-                          {m.user.fullName} ({m.user.phone})
-                        </option>
-                      );
-                    })}
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Myself" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="myself">
+                        <span className="font-medium text-ink">Myself</span>
+                      </SelectItem>
+                      {members.map((m) => {
+                        const mId = m.user?.id || (m as { userId?: string }).userId || "";
+                        return (
+                          <SelectItem key={mId} value={mId}>
+                            <span className="flex items-center gap-2">
+                              <span className="w-5 h-5 rounded-full bg-primary-tint text-primary text-[10px] font-bold flex items-center justify-center shrink-0">
+                                {m.user.fullName.charAt(0).toUpperCase()}
+                              </span>
+                              <span className="font-medium text-ink">{m.user.fullName}</span>
+                              <span className="text-xs text-muted font-mono">({m.user.phone})</span>
+                            </span>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-1.5 text-left">

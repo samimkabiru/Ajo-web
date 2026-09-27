@@ -20,9 +20,12 @@ import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { Badge, RoundStatusBadge } from "@/components/ui/badge";
 import { CardSkeleton, Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/context/auth-context";
 import { formatKobo, parseNairaToKobo } from "@/lib/money";
 import { getErrorMessage } from "@/lib/api/errors";
+import { DatePicker } from "@/components/ui/date-picker";
+import { ViewToggle, ViewMode } from "@/components/common/view-toggle";
 import {
   Users,
   UserPlus,
@@ -53,6 +56,7 @@ export default function GroupDetailPage() {
   const [inviteSuccess, setInviteSuccess] = useState<string | null>(null);
 
   const [isCreateRoundModalOpen, setIsCreateRoundModalOpen] = useState(false);
+  const [roundsViewMode, setRoundsViewMode] = useState<ViewMode>("grid");
   const [contributionNaira, setContributionNaira] = useState("20,000");
   const [firstPayoutDate, setFirstPayoutDate] = useState("");
   const [roundError, setRoundError] = useState<string | null>(null);
@@ -273,88 +277,111 @@ export default function GroupDetailPage() {
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex border-b border-line gap-6 text-sm font-semibold">
-          <button
-            onClick={() => setActiveTab("rounds")}
-            className={`pb-3 border-b-2 transition-colors touch-press flex items-center gap-2 ${
-              activeTab === "rounds"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted hover:text-ink"
-            }`}
-          >
-            <Coins className="w-4 h-4" />
-            <span>Rounds ({rounds?.length ?? 0})</span>
-          </button>
+        {/* Tab Navigation with Radix Animated Sliding Pills */}
+        <Tabs defaultValue="rounds" className="w-full space-y-5">
+          <div className="border-b border-line pb-3">
+            <TabsList>
+              <TabsTrigger value="rounds">
+                <Coins className="w-4 h-4" />
+                <span>Rounds ({rounds?.length ?? 0})</span>
+              </TabsTrigger>
+              <TabsTrigger value="members">
+                <Users className="w-4 h-4" />
+                <span>Members ({group.members?.length ?? 0})</span>
+              </TabsTrigger>
+              {isAdmin && (
+                <TabsTrigger value="invites">
+                  <UserPlus className="w-4 h-4" />
+                  <span>Pending Invites ({group.invites?.length ?? 0})</span>
+                </TabsTrigger>
+              )}
+            </TabsList>
+          </div>
 
-          <button
-            onClick={() => setActiveTab("members")}
-            className={`pb-3 border-b-2 transition-colors touch-press flex items-center gap-2 ${
-              activeTab === "members"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted hover:text-ink"
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            <span>Members ({group.members?.length ?? 0})</span>
-          </button>
-
-          {isAdmin && (
-            <button
-              onClick={() => setActiveTab("invites")}
-              className={`pb-3 border-b-2 transition-colors touch-press flex items-center gap-2 ${
-                activeTab === "invites"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted hover:text-ink"
-              }`}
-            >
-              <UserPlus className="w-4 h-4" />
-              <span>Pending Invites ({group.invites?.length ?? 0})</span>
-            </button>
-          )}
-        </div>
-
-        {/* Tab 1: Rounds */}
-        {activeTab === "rounds" && (
-          <div className="space-y-4">
+          {/* Tab 1: Rounds */}
+          <TabsContent value="rounds" className="space-y-4 m-0">
             {isRoundsLoading ? (
               <CardSkeleton />
             ) : rounds && rounds.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {rounds.map((round, idx) => (
-                  <Link key={round.id} href={`/rounds/${round.id}`} className="block">
-                    <Card interactive className="p-5 flex flex-col justify-between h-full">
-                      <div>
-                        <div className="flex items-center justify-between gap-2 mb-3">
-                          <span className="text-xs font-semibold uppercase text-muted tracking-wider">
-                            Round #{idx + 1}
-                          </span>
-                          <RoundStatusBadge status={round.status} />
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-muted">
+                    {rounds.length} {rounds.length === 1 ? "Round" : "Rounds"}
+                  </span>
+                  <ViewToggle value={roundsViewMode} onChange={setRoundsViewMode} />
+                </div>
+
+                {roundsViewMode === "grid" ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {rounds.map((round, idx) => (
+                      <Link key={round.id} href={`/rounds/${round.id}`} className="block">
+                        <Card interactive className="p-5 flex flex-col justify-between h-full group">
+                          <div>
+                            <div className="flex items-center justify-between gap-2 mb-3">
+                              <span className="text-xs font-semibold uppercase text-muted tracking-wider">
+                                Round #{idx + 1}
+                              </span>
+                              <RoundStatusBadge status={round.status} />
+                            </div>
+
+                            <div className="space-y-1 mb-4">
+                              <span className="text-xs text-muted block">Monthly Contribution</span>
+                              <span className="text-2xl font-bold font-heading text-ink tabular-nums">
+                                {formatKobo(round.contributionAmountKobo)}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-3 border-t border-line/60 text-xs text-muted">
+                            <span>
+                              {round.firstPayoutDate ? (
+                                <>First payout: {round.firstPayoutDate}</>
+                              ) : (
+                                "Payout date pending"
+                              )}
+                            </span>
+                            <span className="flex items-center gap-1 font-semibold text-primary group-hover:translate-x-0.5 transition-transform">
+                              Enter round <ArrowRight className="w-3.5 h-3.5" />
+                            </span>
+                          </div>
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-surface rounded-[14px] border border-line divide-y divide-line/60 overflow-hidden shadow-subtle">
+                    {rounds.map((round, idx) => (
+                      <Link
+                        key={round.id}
+                        href={`/rounds/${round.id}`}
+                        className="flex items-center justify-between p-4 hover:bg-canvas/60 transition-colors group"
+                      >
+                        <div className="flex items-center gap-3.5 min-w-0 pr-4">
+                          <div className="w-10 h-10 rounded-xl bg-primary-tint text-primary flex items-center justify-center font-heading font-bold text-sm shrink-0 shadow-xs">
+                            #{idx + 1}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-heading font-bold text-base text-ink tabular-nums group-hover:text-primary transition-colors">
+                                {formatKobo(round.contributionAmountKobo)}
+                              </span>
+                              <span className="text-xs text-muted">/ month</span>
+                              <RoundStatusBadge status={round.status} />
+                            </div>
+                            <span className="text-xs text-muted">
+                              {round.firstPayoutDate ? `First payout: ${round.firstPayoutDate}` : "Payout date pending"}
+                            </span>
+                          </div>
                         </div>
 
-                        <div className="space-y-1 mb-4">
-                          <span className="text-xs text-muted block">Monthly Contribution</span>
-                          <span className="text-2xl font-bold font-heading text-ink tabular-nums">
-                            {formatKobo(round.contributionAmountKobo)}
-                          </span>
+                        <div className="flex items-center gap-2 font-semibold text-xs text-primary shrink-0">
+                          <span>Enter</span>
+                          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                         </div>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-3 border-t border-line/60 text-xs text-muted">
-                        <span>
-                          {round.firstPayoutDate ? (
-                            <>First payout: {round.firstPayoutDate}</>
-                          ) : (
-                            "Payout date pending"
-                          )}
-                        </span>
-                        <span className="flex items-center gap-1 font-semibold text-primary">
-                          Enter round <ArrowRight className="w-3 h-3" />
-                        </span>
-                      </div>
-                    </Card>
-                  </Link>
-                ))}
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
             ) : (
               <Card className="p-8 text-center border-dashed border-2">
@@ -383,12 +410,10 @@ export default function GroupDetailPage() {
                 )}
               </Card>
             )}
-          </div>
-        )}
+          </TabsContent>
 
-        {/* Tab 2: Members */}
-        {activeTab === "members" && (
-          <div className="space-y-3">
+          {/* Tab 2: Members */}
+          <TabsContent value="members" className="space-y-3 m-0">
             {group.members.map((member) => {
               const memberId = member.user?.id || member.userId || "";
               return (
@@ -438,13 +463,12 @@ export default function GroupDetailPage() {
               </Card>
             );
           })}
-          </div>
-        )}
+          </TabsContent>
 
-        {/* Tab 3: Pending Invites (Admin only) */}
-        {activeTab === "invites" && isAdmin && (
-          <div className="space-y-3">
-            {group.invites && group.invites.length > 0 ? (
+          {/* Tab 3: Pending Invites (Admin only) */}
+          {isAdmin && (
+            <TabsContent value="invites" className="space-y-3 m-0">
+              {group.invites && group.invites.length > 0 ? (
               group.invites.map((invite) => (
                 <Card key={invite.id} className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -478,8 +502,9 @@ export default function GroupDetailPage() {
                 No pending invitations. Use the &quot;Invite&quot; button to add members.
               </Card>
             )}
-          </div>
-        )}
+            </TabsContent>
+          )}
+        </Tabs>
 
         {/* Modal: Invite Member */}
         <Modal
@@ -555,14 +580,20 @@ export default function GroupDetailPage() {
               required
             />
 
-            <Input
-              id="firstPayoutDate"
-              type="date"
-              label="First Payout Date"
-              value={firstPayoutDate}
-              onChange={(e) => setFirstPayoutDate(e.target.value)}
-              hint="Required before activating the round. Each next cycle pays one month later."
-            />
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-ink">
+                First Payout Date
+              </label>
+              <DatePicker
+                value={firstPayoutDate}
+                onChange={setFirstPayoutDate}
+                placeholder="Select first payout date"
+                minDate={new Date().toISOString().split("T")[0]}
+              />
+              <p className="text-[11px] text-muted">
+                Required before activating the round. Each next cycle pays one month later.
+              </p>
+            </div>
 
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-line/60">
               <Button

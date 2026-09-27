@@ -6,6 +6,13 @@ import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   apiGetIncomingSwaps,
   apiGetOutgoingSwaps,
   apiCreateSwap,
@@ -228,18 +235,27 @@ export function SwapSheet({
             <label className="block text-xs font-semibold uppercase tracking-wider text-muted">
               Target Member
             </label>
-            <select
+            <Select
               value={selectedTargetId}
-              onChange={(e) => setSelectedTargetId(e.target.value)}
-              className="w-full min-h-[44px] rounded-[10px] border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              onValueChange={setSelectedTargetId}
             >
-              <option value="">Select participant to swap with...</option>
-              {eligibleTargets.map((p) => (
-                <option key={p.id} value={p.id}>
-                  Position #{p.position} — {p.user.fullName}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="Select participant to swap with..." />
+              </SelectTrigger>
+              <SelectContent>
+                {eligibleTargets.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    <span className="flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full bg-primary-tint text-primary text-[10px] font-bold flex items-center justify-center shrink-0">
+                        #{p.position}
+                      </span>
+                      <span className="font-medium text-ink">{p.user.fullName}</span>
+                      <span className="text-xs text-muted font-mono">({p.user.phone})</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex justify-end pt-2">
