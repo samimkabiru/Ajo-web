@@ -143,11 +143,14 @@ export function ContributeSheet({
                     className="w-full min-h-[44px] rounded-[10px] border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                   >
                     <option value="">Myself</option>
-                    {members.map((m) => (
-                      <option key={m.userId} value={m.userId}>
-                        {m.user.fullName} ({m.user.phone})
-                      </option>
-                    ))}
+                    {members.map((m) => {
+                      const mId = m.user?.id || (m as { userId?: string }).userId || "";
+                      return (
+                        <option key={mId} value={mId}>
+                          {m.user.fullName} ({m.user.phone})
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
 

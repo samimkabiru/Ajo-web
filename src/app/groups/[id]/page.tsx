@@ -81,8 +81,10 @@ export default function GroupDetailPage() {
   });
 
   // Determine current user's role in this group
-  const currentMembership = group?.members.find((m) => m.userId === user?.id);
-  const isAdmin = currentMembership?.role === "ADMIN";
+  const currentMembership = group?.members.find(
+    (m) => m.user?.id === user?.id || (m as { userId?: string }).userId === user?.id
+  );
+  const isAdmin = currentMembership?.role === "ADMIN" || group?.createdBy === user?.id;
 
   // Mutations
   const inviteMutation = useMutation({
@@ -387,52 +389,55 @@ export default function GroupDetailPage() {
         {/* Tab 2: Members */}
         {activeTab === "members" && (
           <div className="space-y-3">
-            {group.members.map((member) => (
-              <Card key={member.userId} className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary-tint text-primary flex items-center justify-center font-bold text-sm">
-                    {member.user.fullName.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-heading font-semibold text-sm text-ink">
-                        {member.user.fullName}
-                      </span>
-                      {member.user.id === user?.id && (
-                        <span className="text-[10px] bg-line/60 text-muted px-1.5 py-0.5 rounded font-medium">
-                          You
-                        </span>
-                      )}
+            {group.members.map((member) => {
+              const memberId = member.user?.id || member.userId || "";
+              return (
+                <Card key={memberId} className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary-tint text-primary flex items-center justify-center font-bold text-sm">
+                      {member.user.fullName.charAt(0).toUpperCase()}
                     </div>
-                    <span className="text-xs text-muted tabular-nums block">
-                      {member.user.phone}
-                    </span>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-heading font-semibold text-sm text-ink">
+                          {member.user.fullName}
+                        </span>
+                        {memberId === user?.id && (
+                          <span className="text-[10px] bg-line/60 text-muted px-1.5 py-0.5 rounded font-medium">
+                            You
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted tabular-nums block">
+                        {member.user.phone}
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-3">
-                  {member.role === "ADMIN" ? (
-                    <Badge variant="primary">Admin</Badge>
-                  ) : (
-                    <Badge variant="neutral">Member</Badge>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {member.role === "ADMIN" ? (
+                      <Badge variant="primary">Admin</Badge>
+                    ) : (
+                      <Badge variant="neutral">Member</Badge>
+                    )}
 
-                  {isAdmin && member.userId !== user?.id && (
-                    <button
-                      onClick={() => {
-                        if (confirm(`Remove ${member.user.fullName} from this circle?`)) {
-                          removeMemberMutation.mutate(member.userId);
-                        }
-                      }}
-                      title="Remove member"
-                      className="p-1.5 text-muted hover:text-danger rounded-lg transition-colors touch-press"
-                    >
+                    {isAdmin && memberId !== user?.id && (
+                      <button
+                        onClick={() => {
+                          if (confirm(`Remove ${member.user.fullName} from this circle?`)) {
+                            removeMemberMutation.mutate(memberId);
+                          }
+                        }}
+                        title="Remove member"
+                        className="p-1.5 text-muted hover:text-danger rounded-lg transition-colors touch-press"
+                      >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   )}
                 </div>
               </Card>
-            ))}
+            );
+          })}
           </div>
         )}
 

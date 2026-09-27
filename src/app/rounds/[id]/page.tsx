@@ -826,12 +826,15 @@ export default function RoundDetailPage() {
               >
                 <option value="">Select a member...</option>
                 {group?.members
-                  ?.filter((m) => !round.participants.some((p) => p.user.id === m.userId))
-                  .map((m) => (
-                    <option key={m.userId} value={m.userId}>
-                      {m.user.fullName} ({m.user.phone})
-                    </option>
-                  ))}
+                  ?.filter((m) => !round.participants.some((p) => p.user.id === (m.user?.id || m.userId)))
+                  .map((m) => {
+                    const mId = m.user?.id || m.userId || "";
+                    return (
+                      <option key={mId} value={mId}>
+                        {m.user.fullName} ({m.user.phone})
+                      </option>
+                    );
+                  })}
               </select>
             </div>
 
