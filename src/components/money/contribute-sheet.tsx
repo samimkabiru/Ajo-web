@@ -1,0 +1,210 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { Modal } from "@/components/ui/modal";
+import { Button } from "@/components/ui/button";
+import { useIdempotencyKey } from "@/lib/idempotency";
+import { formatKobo } from "@/lib/money";
+import { apiContribute } from "@/lib/api/endpoints";
+import { PaymentMethod, UserSummary } from "@/lib/api/types";
+import { getErrorMessage } from "@/lib/api/errors";
+import { CheckCircle2, AlertCircle, Coins, ShieldCheck } from "lucide-react";
+
+interface ContributeSheetProps {
+  isOpen: boolean;
+  onClose: () => void;
+  cycleId: string;
+  cycleNumber: number;
+  contributionAmountKobo: number;
+  onSuccess: () => void;
+  isAdmin?: boolean;
+  members?: { userId: string; user: UserSummary }[];
+}
+
+export function ContributeSheet({
+  isOpen,
+  onClose,
+  cycleId,
+  cycleNumber,
+  contributionAmountKobo,
+  onSuccess,
+  isAdmin = false,
+  members = [],
+}: ContributeSheetProps) {
+  // Generate and hold idempotency key when the sheet opens (user intent forms)
+  const { key, initIntent, resetIntent } = useIdempotencyKey();
+
+  const [method, setMethod] = useState<PaymentMethod>("ONLINE");
+  const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      initIntent();
+      setIsSuccess(false);
+      setErrorMsg(null);
+      setSelectedUserId("");
+    } else {
+      resetIntent();
+    }
+  }, [isOpen, initIntent, resetIntent]);
+
+  const handleConfirmContribution = async () => {
+    if (!key) {
+      setErrorMsg("Missing transaction key. Please reopen the sheet.");
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMsg(null);
+
+    try {
+      await apiContribute(
+        cycleId,
+        {
+          amountKobo: contributionAmountKobo,
+          userId: selectedUserId || undefined,
+          method,
+        },
+        key
+      );
+
+      // Subtle haptic response on supported mobile devices
+      if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+        try {
+          navigator.vibrate(10);
+        } catch {
+          // Ignore vibration failures
+        }
+      }
+
+      setIsSuccess(true);
+      onSuccess();
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+    } catch (err) {
+      setErrorMsg(getErrorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Contribute to Month ${cycleNumber}`}
+      description="Confirm your scheduled monthly contribution into the circle's pot."
+    >
+      <div className="space-y-5 pt-1">
+        {isSuccess ? (
+          <div className="p-6 text-center space-y-3 bg-positive/10 rounded-[12px] border border-positive/20">
+            <CheckCircle2 className="w-12 h-12 text-positive mx-auto" />
+            <h4 className="font-heading text-lg font-bold text-ink">Contribution Confirmed</h4>
+            <p className="text-xs text-muted">
+              {formatKobo(contributionAmountKobo)} recorded successfully into the circle pot.
+            </p>
+          </div>
+        ) : (
+          <>
+            {errorMsg && (
+              <div className="p-3.5 rounded-[10px] bg-danger/10 border border-danger/20 flex items-start gap-2.5 text-xs text-danger font-medium leading-snug">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
+
+            {/* Fixed Amount Display per Section 8 Rule */}
+            <div className="bg-canvas border border-line rounded-[12px] p-5 text-center">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1">
+                Fixed Round Contribution
+              </span>
+              <div className="font-heading font-extrabold text-3xl sm:text-4xl text-ink tabular-nums">
+                {formatKobo(contributionAmountKobo)}
+              </div>
+              <span className="text-[11px] text-muted block mt-1">
+                Strict integer kobo accounting — no floating point conversion
+              </span>
+            </div>
+
+            {/* Admin on-behalf or cash options */}
+            {isAdmin && members.length > 0 && (
+              <div className="space-y-3 pt-2 border-t border-line/60">
+                <div className="space-y-1.5 text-left">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted">
+                    Contribute for Member (Optional)
+                  </label>
+                  <select
+                    value={selectedUserId}
+                    onChange={(e) => setSelectedUserId(e.target.value)}
+                    className="w-full min-h-[44px] rounded-[10px] border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  >
+                    <option value="">Myself</option>
+                    {members.map((m) => (
+                      <option key={m.userId} value={m.userId}>
+                        {m.user.fullName} ({m.user.phone})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5 text-left">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted">
+                    Payment Method
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setMethod("ONLINE")}
+                      className={`py-2 px-3 text-xs font-semibold rounded-lg border touch-press ${
+                        method === "ONLINE"
+                          ? "bg-primary-tint border-primary text-primary"
+                          : "bg-surface border-line text-muted"
+                      }`}
+                    >
+                      Online
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMethod("CASH")}
+                      className={`py-2 px-3 text-xs font-semibold rounded-lg border touch-press ${
+                        method === "CASH"
+                          ? "bg-primary-tint border-primary text-primary"
+                          : "bg-surface border-line text-muted"
+                      }`}
+                    >
+                      Cash (Admin Recorded)
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 text-xs text-muted bg-canvas p-2.5 rounded-lg border border-line">
+              <ShieldCheck className="w-4 h-4 text-positive shrink-0" />
+              <span>Idempotency-protected: Tap once safely. Duplicate transfers are blocked.</span>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-line/60">
+              <Button type="button" variant="ghost" onClick={onClose} disabled={isLoading}>
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                onClick={handleConfirmContribution}
+                isLoading={isLoading}
+                loadingText="Sending..."
+              >
+                Confirm Payment of {formatKobo(contributionAmountKobo)}
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
+    </Modal>
+  );
+}
