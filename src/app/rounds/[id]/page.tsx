@@ -28,6 +28,8 @@ import { Modal } from "@/components/ui/modal";
 import { CycleTimeline } from "@/components/rounds/cycle-timeline";
 import { ContributeSheet } from "@/components/money/contribute-sheet";
 import { PayoutSheet } from "@/components/money/payout-sheet";
+import { SwapSheet } from "@/components/rounds/swap-sheet";
+import { ExitSheet } from "@/components/rounds/exit-sheet";
 import { useAuth } from "@/context/auth-context";
 import { formatKobo, formatPoolBalance, formatSignedKobo } from "@/lib/money";
 import { getErrorMessage } from "@/lib/api/errors";
@@ -48,6 +50,8 @@ import {
   Plus,
   RefreshCw,
   Info,
+  ArrowLeftRight,
+  LogOut,
 } from "lucide-react";
 
 export default function RoundDetailPage() {
@@ -62,6 +66,8 @@ export default function RoundDetailPage() {
   const [isPayoutOpen, setIsPayoutOpen] = useState(false);
   const [isActivateConfirmOpen, setIsActivateConfirmOpen] = useState(false);
   const [isAddParticipantModalOpen, setIsAddParticipantModalOpen] = useState(false);
+  const [isSwapOpen, setIsSwapOpen] = useState(false);
+  const [isExitOpen, setIsExitOpen] = useState(false);
   const [selectedMemberUserId, setSelectedMemberUserId] = useState("");
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -321,6 +327,28 @@ export default function RoundDetailPage() {
                       Activate Round
                     </Button>
                   )}
+                </>
+              )}
+
+              {round.status === "ACTIVE" && myParticipant && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsSwapOpen(true)}
+                  >
+                    <ArrowLeftRight className="w-3.5 h-3.5 mr-1" />
+                    Swap Slot
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsExitOpen(true)}
+                    className="text-muted hover:text-danger"
+                  >
+                    <LogOut className="w-3.5 h-3.5 mr-1" />
+                    Exit Round
+                  </Button>
                 </>
               )}
             </div>
@@ -867,6 +895,23 @@ export default function RoundDetailPage() {
             }}
           />
         )}
+
+        {/* Swap Sheet */}
+        <SwapSheet
+          isOpen={isSwapOpen}
+          onClose={() => setIsSwapOpen(false)}
+          roundId={roundId}
+          currentParticipant={myParticipant}
+          participants={round.participants || []}
+        />
+
+        {/* Exit Sheet */}
+        <ExitSheet
+          isOpen={isExitOpen}
+          onClose={() => setIsExitOpen(false)}
+          roundId={roundId}
+          participantId={myParticipant?.id}
+        />
       </div>
     </AuthenticatedLayout>
   );
