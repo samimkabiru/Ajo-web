@@ -60,6 +60,7 @@ import {
   Info,
   ArrowLeftRight,
   LogOut,
+  XCircle,
 } from "lucide-react";
 
 export default function RoundDetailPage() {
@@ -73,6 +74,7 @@ export default function RoundDetailPage() {
   const [isContributeOpen, setIsContributeOpen] = useState(false);
   const [isPayoutOpen, setIsPayoutOpen] = useState(false);
   const [isActivateConfirmOpen, setIsActivateConfirmOpen] = useState(false);
+  const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
   const [isAddParticipantModalOpen, setIsAddParticipantModalOpen] = useState(false);
   const [isSwapOpen, setIsSwapOpen] = useState(false);
   const [isExitOpen, setIsExitOpen] = useState(false);
@@ -88,28 +90,28 @@ export default function RoundDetailPage() {
   } = useQuery({
     queryKey: ["round", roundId],
     queryFn: () => apiGetRound(roundId),
-    enabled: !!roundId,
+    enabled: !!user && !!roundId,
   });
 
   // Group detail (to get members list for admin assignment and group name)
   const { data: group } = useQuery({
     queryKey: ["group", round?.groupId],
     queryFn: () => apiGetGroup(round!.groupId),
-    enabled: !!round?.groupId,
+    enabled: !!user && !!round?.groupId,
   });
 
   // Pool balance (ledger liability, displayed positive)
   const { data: poolBalance } = useQuery({
     queryKey: ["pool-balance", roundId],
     queryFn: () => apiGetPoolBalance(roundId),
-    enabled: !!roundId && round?.status === "ACTIVE",
+    enabled: !!user && !!roundId && round?.status === "ACTIVE",
   });
 
   // Shortfall claims
   const { data: shortfallClaims } = useQuery({
     queryKey: ["shortfall-claims", roundId],
     queryFn: () => apiGetRoundShortfallClaims(roundId),
-    enabled: !!roundId && round?.status === "ACTIVE",
+    enabled: !!user && !!roundId && round?.status === "ACTIVE",
   });
 
   // Find user's participant entry
@@ -119,7 +121,7 @@ export default function RoundDetailPage() {
   const { data: myExposure } = useQuery({
     queryKey: ["exposure", myParticipant?.id],
     queryFn: () => apiGetParticipantExposure(myParticipant!.id),
-    enabled: !!myParticipant?.id && round?.status === "ACTIVE",
+    enabled: !!user && !!myParticipant?.id && round?.status === "ACTIVE",
   });
 
   // Current or selected cycle
@@ -137,14 +139,14 @@ export default function RoundDetailPage() {
   } = useQuery({
     queryKey: ["cycle-contributions", currentCycle?.id],
     queryFn: () => apiGetCycleContributions(currentCycle!.id),
-    enabled: !!currentCycle?.id,
+    enabled: !!user && !!currentCycle?.id,
   });
 
   // Selected cycle payout
   const { data: cyclePayout, refetch: refetchPayout } = useQuery({
     queryKey: ["cycle-payout", currentCycle?.id],
     queryFn: () => apiGetCyclePayout(currentCycle!.id),
-    enabled: !!currentCycle?.id,
+    enabled: !!user && !!currentCycle?.id,
   });
 
   // Admin status
@@ -300,12 +302,14 @@ export default function RoundDetailPage() {
                 <>
                   {myParticipant ? (
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       onClick={() => leaveRoundMutation.mutate()}
                       isLoading={leaveRoundMutation.isPending}
                       loadingText="Leaving..."
+                      className="text-muted hover:text-danger hover:bg-danger/8 text-xs font-medium transition-colors"
                     >
+                      <UserX className="w-3.5 h-3.5 mr-1.5" />
                       Leave Round
                     </Button>
                   ) : (
@@ -322,18 +326,32 @@ export default function RoundDetailPage() {
                   )}
 
                   {isAdmin && (
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => {
-                        setActionError(null);
-                        setIsActivateConfirmOpen(true);
-                      }}
-                      disabled={round.participants.length < 2}
-                    >
-                      <Play className="w-3.5 h-3.5 mr-1.5 fill-current" />
-                      Activate Round
-                    </Button>
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setActionError(null);
+                          setIsCancelConfirmOpen(true);
+                        }}
+                        className="text-muted hover:text-danger hover:bg-danger/8 text-xs font-medium transition-colors"
+                      >
+                        <XCircle className="w-3.5 h-3.5 mr-1.5" />
+                        Cancel Round
+                      </Button>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => {
+                          setActionError(null);
+                          setIsActivateConfirmOpen(true);
+                        }}
+                        disabled={round.participants.length < 2}
+                      >
+                        <Play className="w-3.5 h-3.5 mr-1.5 fill-current" />
+                        Activate Round
+                      </Button>
+                    </>
                   )}
                 </>
               )}
@@ -796,6 +814,52 @@ export default function RoundDetailPage() {
                 loadingText="Activating..."
               >
                 Confirm & Activate
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Modal: Cancel Round (Admin) */}
+        <Modal
+          isOpen={isCancelConfirmOpen}
+          onClose={() => setIsCancelConfirmOpen(false)}
+          title="Cancel Round"
+          description="Are you sure you want to cancel this round?"
+        >
+          <div className="space-y-4 pt-2">
+            <div className="p-4 rounded-xl bg-danger/10 border border-danger/20 text-xs sm:text-sm text-ink flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-danger shrink-0 mt-0.5" />
+              <div>
+                <strong className="block text-danger font-semibold">Round Cancellation</strong>
+                Cancelling this round terminates it permanently before activation.
+                <ul className="list-disc list-inside mt-1.5 space-y-1 text-muted">
+                  <li>No cycles or ledger obligations will be created</li>
+                  <li>All participants will see the round as cancelled</li>
+                  <li>This action cannot be reversed</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-line/60">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsCancelConfirmOpen(false)}
+              >
+                Keep Round
+              </Button>
+              <Button
+                type="button"
+                variant="danger"
+                onClick={() => {
+                  cancelRoundMutation.mutate(undefined, {
+                    onSuccess: () => setIsCancelConfirmOpen(false),
+                  });
+                }}
+                isLoading={cancelRoundMutation.isPending}
+                loadingText="Cancelling..."
+              >
+                Confirm Cancellation
               </Button>
             </div>
           </div>

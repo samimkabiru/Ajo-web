@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Server, RefreshCw, Sparkles } from "lucide-react";
 
@@ -17,9 +17,15 @@ const ColdStartContext = createContext<ColdStartContextType>({
 });
 
 export function ColdStartProvider({ children }: { children: React.ReactNode }) {
+  // Check if session already verified the backend is awake
+  const isAlreadyAwake = typeof window !== "undefined" && sessionStorage.getItem("ajo_backend_ready") === "1";
+
   const [isWaking, setIsWaking] = useState(false);
-  const [isBackendReady, setIsBackendReady] = useState(false);
+  const [isBackendReady, setIsBackendReady] = useState(isAlreadyAwake);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  const isBackendReadyRef = useRef(isAlreadyAwake);
+  const timer3sRef = useRef<NodeJS.Timeout | null>(null);
 
   const checkBackendHealth = async (): Promise<boolean> => {
     try {
@@ -27,8 +33,16 @@ export function ColdStartProvider({ children }: { children: React.ReactNode }) {
         headers: { Accept: "application/json" },
       });
       if (res.ok) {
+        isBackendReadyRef.current = true;
         setIsBackendReady(true);
         setIsWaking(false);
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("ajo_backend_ready", "1");
+        }
+        if (timer3sRef.current) {
+          clearTimeout(timer3sRef.current);
+          timer3sRef.current = null;
+        }
         return true;
       }
     } catch {
@@ -38,32 +52,38 @@ export function ColdStartProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    let timer3s: NodeJS.Timeout | null = null;
-    let elapsedInterval: NodeJS.Timeout | null = null;
     let isMounted = true;
+    let pollInterval: NodeJS.Timeout | null = null;
 
-    // Start 3 second timer
-    timer3s = setTimeout(() => {
-      if (isMounted && !isBackendReady) {
+    // If backend was already verified awake in this session, do not arm the waking screen
+    if (isAlreadyAwake) {
+      isBackendReadyRef.current = true;
+      setIsBackendReady(true);
+      // Run a silent background ping just to be sure
+      checkBackendHealth();
+      return;
+    }
+
+    // Arm the 3.5-second timer only if backend is not yet confirmed awake
+    timer3sRef.current = setTimeout(() => {
+      if (isMounted && !isBackendReadyRef.current) {
         setIsWaking(true);
       }
-    }, 3000);
+    }, 3500);
 
-    // Warm-up ping immediately
     const pollHealth = async () => {
       const ok = await checkBackendHealth();
       if (!ok && isMounted) {
-        // Poll every 4 seconds until awake
-        const pollInterval = setInterval(async () => {
-          if (!isMounted) {
-            clearInterval(pollInterval);
+        pollInterval = setInterval(async () => {
+          if (!isMounted || isBackendReadyRef.current) {
+            if (pollInterval) clearInterval(pollInterval);
             return;
           }
           const ready = await checkBackendHealth();
-          if (ready) {
+          if (ready && pollInterval) {
             clearInterval(pollInterval);
           }
-        }, 4000);
+        }, 3500);
       }
     };
 
@@ -71,8 +91,13 @@ export function ColdStartProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       isMounted = false;
-      if (timer3s) clearTimeout(timer3s);
-      if (elapsedInterval) clearInterval(elapsedInterval);
+      if (timer3sRef.current) {
+        clearTimeout(timer3sRef.current);
+        timer3sRef.current = null;
+      }
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
     };
   }, []);
 

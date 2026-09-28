@@ -16,13 +16,14 @@ import { ViewToggle, ViewMode } from "@/components/common/view-toggle";
 import { Users, Plus, ArrowRight, RefreshCw } from "lucide-react";
 
 export default function GroupsPage() {
-  const { isPhoneVerified } = useAuth();
+  const { user, isPhoneVerified } = useAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
   const { data: groups, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["groups"],
     queryFn: apiGetGroups,
+    enabled: !!user,
   });
 
   return (

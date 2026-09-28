@@ -38,16 +38,18 @@ export default function DashboardPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  // Fetch user's groups
+  // Fetch user's groups (only when authenticated)
   const { data: groups, isLoading: isGroupsLoading } = useQuery({
     queryKey: ["groups"],
     queryFn: apiGetGroups,
+    enabled: !!user,
   });
 
-  // Fetch user's pending invites
+  // Fetch user's pending invites (only when authenticated)
   const { data: invites, isLoading: isInvitesLoading } = useQuery({
     queryKey: ["my-invites"],
     queryFn: apiGetMyInvites,
+    enabled: !!user,
   });
 
   const pendingInvites = invites || [];

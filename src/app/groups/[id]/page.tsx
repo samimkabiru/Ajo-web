@@ -70,7 +70,7 @@ export default function GroupDetailPage() {
   } = useQuery({
     queryKey: ["group", groupId],
     queryFn: () => apiGetGroup(groupId),
-    enabled: !!groupId,
+    enabled: !!user && !!groupId,
   });
 
   // Group Rounds
@@ -81,7 +81,7 @@ export default function GroupDetailPage() {
   } = useQuery({
     queryKey: ["group-rounds", groupId],
     queryFn: () => apiGetGroupRounds(groupId),
-    enabled: !!groupId,
+    enabled: !!user && !!groupId,
   });
 
   // Determine current user's role in this group
@@ -413,95 +413,167 @@ export default function GroupDetailPage() {
           </TabsContent>
 
           {/* Tab 2: Members */}
-          <TabsContent value="members" className="space-y-3 m-0">
-            {group.members.map((member) => {
-              const memberId = member.user?.id || member.userId || "";
-              return (
-                <Card key={memberId} className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary-tint text-primary flex items-center justify-center font-bold text-sm">
-                      {member.user.fullName.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-heading font-semibold text-sm text-ink">
-                          {member.user.fullName}
-                        </span>
-                        {memberId === user?.id && (
-                          <span className="text-[10px] bg-line/60 text-muted px-1.5 py-0.5 rounded font-medium">
-                            You
-                          </span>
-                        )}
+          <TabsContent value="members" className="space-y-4 m-0">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-heading font-bold text-sm text-ink">
+                  Circle Members ({group.members.length})
+                </h3>
+                <p className="text-xs text-muted">
+                  Everyone enrolled in this savings circle
+                </p>
+              </div>
+              {isAdmin && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    setInviteError(null);
+                    setInviteSuccess(null);
+                    setIsInviteModalOpen(true);
+                  }}
+                >
+                  <UserPlus className="w-3.5 h-3.5 mr-1.5" />
+                  Invite Member
+                </Button>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              {group.members.map((member) => {
+                const memberId = member.user?.id || member.userId || "";
+                return (
+                  <Card key={memberId} className="p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary-tint text-primary flex items-center justify-center font-bold text-sm">
+                        {member.user.fullName.charAt(0).toUpperCase()}
                       </div>
-                      <span className="text-xs text-muted tabular-nums block">
-                        {member.user.phone}
-                      </span>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-heading font-semibold text-sm text-ink">
+                            {member.user.fullName}
+                          </span>
+                          {memberId === user?.id && (
+                            <span className="text-[10px] bg-line/60 text-muted px-1.5 py-0.5 rounded font-medium">
+                              You
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-xs text-muted tabular-nums block">
+                          {member.user.phone}
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-3">
-                    {member.role === "ADMIN" ? (
-                      <Badge variant="primary">Admin</Badge>
-                    ) : (
-                      <Badge variant="neutral">Member</Badge>
-                    )}
+                    <div className="flex items-center gap-3">
+                      {member.role === "ADMIN" ? (
+                        <Badge variant="primary">Admin</Badge>
+                      ) : (
+                        <Badge variant="neutral">Member</Badge>
+                      )}
 
-                    {isAdmin && memberId !== user?.id && (
-                      <button
-                        onClick={() => {
-                          if (confirm(`Remove ${member.user.fullName} from this circle?`)) {
-                            removeMemberMutation.mutate(memberId);
-                          }
-                        }}
-                        title="Remove member"
-                        className="p-1.5 text-muted hover:text-danger rounded-lg transition-colors touch-press"
-                      >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              </Card>
-            );
-          })}
+                      {isAdmin && memberId !== user?.id && (
+                        <button
+                          onClick={() => {
+                            if (confirm(`Remove ${member.user.fullName} from this circle?`)) {
+                              removeMemberMutation.mutate(memberId);
+                            }
+                          }}
+                          title="Remove member"
+                          className="p-1.5 text-muted hover:text-danger rounded-lg transition-colors touch-press"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
           </TabsContent>
 
           {/* Tab 3: Pending Invites (Admin only) */}
           {isAdmin && (
-            <TabsContent value="invites" className="space-y-3 m-0">
-              {group.invites && group.invites.length > 0 ? (
-              group.invites.map((invite) => (
-                <Card key={invite.id} className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-canvas border border-line text-muted flex items-center justify-center">
-                      <Clock className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <span className="font-medium text-sm text-ink block tabular-nums">
-                        {invite.phone}
-                      </span>
-                      <span className="text-xs text-muted">
-                        Invited by {invite.invitedBy?.fullName || "Admin"}
-                      </span>
-                    </div>
-                  </div>
+            <TabsContent value="invites" className="space-y-4 m-0">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-heading font-bold text-sm text-ink">
+                    Pending Invitations ({group.invites?.length || 0})
+                  </h3>
+                  <p className="text-xs text-muted">
+                    Invitations waiting to be accepted
+                  </p>
+                </div>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    setInviteError(null);
+                    setInviteSuccess(null);
+                    setIsInviteModalOpen(true);
+                  }}
+                >
+                  <UserPlus className="w-3.5 h-3.5 mr-1.5" />
+                  Invite Member
+                </Button>
+              </div>
 
-                  <div className="flex items-center gap-2">
-                    <Badge variant="warning">Pending</Badge>
-                    <button
-                      onClick={() => revokeInviteMutation.mutate(invite.id)}
-                      title="Revoke invitation"
-                      className="p-1.5 text-muted hover:text-danger rounded-lg transition-colors touch-press"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+              {group.invites && group.invites.length > 0 ? (
+                <div className="space-y-3">
+                  {group.invites.map((invite) => (
+                    <Card key={invite.id} className="p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-canvas border border-line text-muted flex items-center justify-center">
+                          <Clock className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <span className="font-medium text-sm text-ink block tabular-nums">
+                            {invite.phone}
+                          </span>
+                          <span className="text-xs text-muted">
+                            Invited by {invite.invitedBy?.fullName || "Admin"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Badge variant="warning">Pending</Badge>
+                        <button
+                          onClick={() => revokeInviteMutation.mutate(invite.id)}
+                          title="Revoke invitation"
+                          className="p-1.5 text-muted hover:text-danger rounded-lg transition-colors touch-press"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Card className="p-8 text-center space-y-3 border-dashed border-2">
+                  <div className="w-12 h-12 rounded-xl bg-primary-tint text-primary flex items-center justify-center mx-auto mb-2">
+                    <UserPlus className="w-6 h-6" />
                   </div>
+                  <h4 className="font-heading font-bold text-base text-ink">
+                    No pending invitations
+                  </h4>
+                  <p className="text-xs text-muted max-w-sm mx-auto">
+                    Invite colleagues, friends, or family by their Nigerian phone number to join this circle.
+                  </p>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => {
+                      setInviteError(null);
+                      setInviteSuccess(null);
+                      setIsInviteModalOpen(true);
+                    }}
+                  >
+                    <UserPlus className="w-3.5 h-3.5 mr-1.5" />
+                    Invite First Member
+                  </Button>
                 </Card>
-              ))
-            ) : (
-              <Card className="p-8 text-center text-sm text-muted">
-                No pending invitations. Use the &quot;Invite&quot; button to add members.
-              </Card>
-            )}
+              )}
             </TabsContent>
           )}
         </Tabs>

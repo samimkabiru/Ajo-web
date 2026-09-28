@@ -18,7 +18,7 @@ import { getErrorMessage } from "@/lib/api/errors";
 import { Mail, Check, X, ShieldAlert, Users, Calendar, AlertCircle } from "lucide-react";
 
 export default function MyInvitesPage() {
-  const { isPhoneVerified } = useAuth();
+  const { user, isPhoneVerified } = useAuth();
   const queryClient = useQueryClient();
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -31,6 +31,7 @@ export default function MyInvitesPage() {
   } = useQuery({
     queryKey: ["my-invites"],
     queryFn: apiGetMyInvites,
+    enabled: !!user,
   });
 
   const acceptMutation = useMutation({
@@ -116,7 +117,7 @@ export default function MyInvitesPage() {
                       Invited by <strong>{invite.invitedBy?.fullName || "Admin"}</strong>
                     </p>
                     <span className="text-[11px] text-muted tabular-nums mt-1 block">
-                      Expires: {new Date(invite.expiresAt).toLocaleDateString()}
+                      Expires: {new Date(invite.expiresAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                     </span>
                   </div>
                 </div>

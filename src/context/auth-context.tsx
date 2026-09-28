@@ -27,8 +27,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Attempt initial session restore via HttpOnly cookie refresh on mount
   const restoreSession = useCallback(async () => {
     try {
-      const token = await refreshAccessToken();
-      if (token) {
+      const auth = await refreshAccessToken();
+      if (auth?.user) {
+        setUser(auth.user);
+        return true;
+      }
+      if (auth?.accessToken) {
         const me = await apiGetMe();
         setUser(me);
         return true;
@@ -90,8 +94,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const refreshSession = async (): Promise<boolean> => {
-    const token = await refreshAccessToken();
-    if (token) {
+    const auth = await refreshAccessToken();
+    if (auth?.user) {
+      setUser(auth.user);
+      return true;
+    }
+    if (auth?.accessToken) {
       try {
         const me = await apiGetMe();
         setUser(me);
