@@ -82,12 +82,15 @@ export interface GroupInviteSummary {
 }
 
 export type RoundStatus = "FORMING" | "ACTIVE" | "COMPLETED" | "CANCELLED";
+export type ParticipantStatus = "ACTIVE" | "PENDING_EXIT" | "EXITED";
 
 export interface ParticipantSummary {
   id: string;
-  roundId: string;
+  roundId?: string;
   user: UserSummary;
-  position: number;
+  position?: number;
+  payoutPosition?: number | null;
+  status?: ParticipantStatus;
   joinedAt: string;
 }
 
@@ -223,7 +226,11 @@ export interface ExitRequestSummary {
 export interface RepaymentSummary {
   id: string;
   participantId: string;
+  participant?: UserSummary;
   amountKobo: number;
+  method?: PaymentMethod;
+  recordedBy?: string;
+  ledgerTransactionId?: string;
   createdAt: string;
 }
 

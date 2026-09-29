@@ -43,6 +43,8 @@ import { ExitSheet } from "@/components/rounds/exit-sheet";
 import { EditRoundModal } from "@/components/rounds/edit-round-modal";
 import { BuyInModal } from "@/components/rounds/buy-in-modal";
 import { SettleCycleModal } from "@/components/rounds/settle-cycle-modal";
+import { ParticipantHistoryModal } from "@/components/rounds/participant-history-modal";
+import { RoundAuditLedger } from "@/components/rounds/round-audit-ledger";
 import { useAuth } from "@/context/auth-context";
 import { formatKobo, formatPoolBalance, formatSignedKobo } from "@/lib/money";
 import { getErrorMessage } from "@/lib/api/errors";
@@ -74,6 +76,9 @@ import {
   XCircle,
   Sliders,
   Scale,
+  Eye,
+  CalendarDays,
+  FileText,
 } from "lucide-react";
 
 export default function RoundDetailPage() {
@@ -97,6 +102,8 @@ export default function RoundDetailPage() {
   const [isSettleCycleOpen, setIsSettleCycleOpen] = useState(false);
   const [selectedMemberUserId, setSelectedMemberUserId] = useState("");
   const [actionError, setActionError] = useState<string | null>(null);
+  const [selectedParticipantForHistory, setSelectedParticipantForHistory] = useState<ParticipantSummary | null>(null);
+  const [activeViewTab, setActiveViewTab] = useState<"cycles" | "ledger">("cycles");
 
   // Round detail
   const {
@@ -518,15 +525,24 @@ export default function RoundDetailPage() {
                         </div>
                       </div>
 
-                      {isAdmin && (
+                      <div className="flex items-center gap-1">
                         <button
-                          onClick={() => removeParticipantMutation.mutate(p.user.id)}
-                          title="Remove participant"
-                          className="p-1.5 text-muted hover:text-danger rounded-lg transition-colors touch-press"
+                          onClick={() => setSelectedParticipantForHistory(p)}
+                          title="View member audit record"
+                          className="p-1.5 text-muted hover:text-primary rounded-lg transition-colors touch-press"
                         >
-                          <UserX className="w-4 h-4" />
+                          <Eye className="w-4 h-4" />
                         </button>
-                      )}
+                        {isAdmin && (
+                          <button
+                            onClick={() => removeParticipantMutation.mutate(p.user.id)}
+                            title="Remove participant"
+                            className="p-1.5 text-muted hover:text-danger rounded-lg transition-colors touch-press"
+                          >
+                            <UserX className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))
                 ) : (
@@ -539,9 +555,27 @@ export default function RoundDetailPage() {
           </div>
         )}
 
-        {/* ===================== ACTIVE STATUS (CENTREPIECE) ===================== */}
-        {round.status === "ACTIVE" && (
+        {/* ===================== ACTIVE OR COMPLETED STATUS (CENTREPIECE) ===================== */}
+        {(round.status === "ACTIVE" || round.status === "COMPLETED") && (
           <div className="space-y-6">
+            {/* Completion Banner */}
+            {round.status === "COMPLETED" && (
+              <div className="p-4 rounded-[12px] bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2.5">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                  <div>
+                    <span className="font-heading font-bold text-sm text-ink block">
+                      Round Fully Completed
+                    </span>
+                    <span className="text-muted">
+                      All rotation cycles have completed disbursement. Full audit logs are available below.
+                    </span>
+                  </div>
+                </div>
+                <Badge variant="positive">Completed</Badge>
+              </div>
+            )}
+
             {/* Hero Pot & Obligation Card */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* Hero Pot Balance Card with Count-Up and Progress Rail */}
@@ -654,14 +688,46 @@ export default function RoundDetailPage() {
               </div>
             )}
 
-            {/* Cycle Timeline */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h3 className="font-heading font-bold text-lg text-ink">
-                  Rotation Schedule
-                </h3>
-                <span className="text-xs text-muted">Select a month to view details</span>
+            {/* View Switcher: Rotation Schedule vs Financial Audit Ledger */}
+            <div className="flex items-center justify-between gap-4 pt-2">
+              <div className="flex items-center gap-2 p-1 rounded-xl bg-canvas dark:bg-[#14171B] border border-line dark:border-white/10 text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => setActiveViewTab("cycles")}
+                  className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                    activeViewTab === "cycles"
+                      ? "bg-surface dark:bg-[#1E232B] text-primary dark:text-indigo-300 shadow-sm"
+                      : "text-muted hover:text-ink"
+                  }`}
+                >
+                  <CalendarDays className="w-3.5 h-3.5" />
+                  Monthly Rotation ({round.cycles?.length || 0})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveViewTab("ledger")}
+                  className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                    activeViewTab === "ledger"
+                      ? "bg-surface dark:bg-[#1E232B] text-primary dark:text-indigo-300 shadow-sm"
+                      : "text-muted hover:text-ink"
+                  }`}
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  Financial Audit Ledger
+                </button>
               </div>
+            </div>
+
+            {activeViewTab === "cycles" ? (
+              <>
+                {/* Cycle Timeline */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-heading font-bold text-lg text-ink">
+                      Rotation Schedule
+                    </h3>
+                    <span className="text-xs text-muted">Select a month to view details</span>
+                  </div>
 
               <CycleTimeline
                 cycles={round.cycles || []}
@@ -856,7 +922,15 @@ export default function RoundDetailPage() {
                             </div>
                           </div>
 
-                          <div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedParticipantForHistory(p)}
+                              title="View member audit record"
+                              className="p-1.5 text-muted hover:text-primary rounded-lg transition-colors touch-press"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </button>
                             {isPaid ? (
                               <div className="text-right">
                                 <span className="text-xs font-bold text-positive block tabular-nums">
@@ -919,6 +993,10 @@ export default function RoundDetailPage() {
                   ))}
                 </div>
               </Card>
+            )}
+              </>
+            ) : (
+              <RoundAuditLedger roundId={roundId} currentUserId={user?.id} />
             )}
           </div>
         )}
@@ -1178,6 +1256,14 @@ export default function RoundDetailPage() {
             }}
           />
         )}
+
+        {/* Modal: Participant History Record */}
+        <ParticipantHistoryModal
+          isOpen={!!selectedParticipantForHistory}
+          onClose={() => setSelectedParticipantForHistory(null)}
+          participant={selectedParticipantForHistory}
+          roundStatus={round.status}
+        />
       </div>
     </AuthenticatedLayout>
   );

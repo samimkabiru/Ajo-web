@@ -306,6 +306,18 @@ export async function apiGetRoundPayouts(roundId: string): Promise<PayoutSummary
   return apiFetch<PayoutSummary[]>(`/rounds/${roundId}/payouts`);
 }
 
+export async function apiGetParticipantPayouts(
+  participantId: string
+): Promise<PayoutSummary[]> {
+  return apiFetch<PayoutSummary[]>(`/participants/${participantId}/payouts`);
+}
+
+export async function apiGetParticipantContributions(
+  participantId: string
+): Promise<ContributionSummary[]> {
+  return apiFetch<ContributionSummary[]>(`/participants/${participantId}/contributions`);
+}
+
 // ======================== EXPOSURE & CLAIMS ========================
 
 export async function apiGetParticipantExposure(
@@ -320,10 +332,22 @@ export async function apiGetRoundShortfallClaims(
   return apiFetch<ShortfallClaimSummary[]>(`/rounds/${roundId}/shortfall-claims`);
 }
 
+export async function apiGetOpenShortfallClaims(
+  roundId: string
+): Promise<ShortfallClaimSummary[]> {
+  return apiFetch<ShortfallClaimSummary[]>(`/rounds/${roundId}/shortfall-claims/open`);
+}
+
 export async function apiGetMyShortfallClaims(
   roundId: string
 ): Promise<ShortfallClaimSummary[]> {
   return apiFetch<ShortfallClaimSummary[]>(`/rounds/${roundId}/shortfall-claims/mine`);
+}
+
+export async function apiGetParticipantRepayments(
+  participantId: string
+): Promise<RepaymentSummary[]> {
+  return apiFetch<RepaymentSummary[]>(`/participants/${participantId}/repayments`);
 }
 
 export async function apiRepay(
@@ -354,11 +378,11 @@ export async function apiGetOutgoingSwaps(roundId: string): Promise<SwapRequestS
 
 export async function apiCreateSwap(
   roundId: string,
-  targetParticipantId: string
+  targetUserId: string
 ): Promise<SwapRequestSummary> {
   return apiFetch<SwapRequestSummary>(`/rounds/${roundId}/swaps`, {
     method: "POST",
-    body: JSON.stringify({ targetParticipantId }),
+    body: JSON.stringify({ targetUserId }),
   });
 }
 
