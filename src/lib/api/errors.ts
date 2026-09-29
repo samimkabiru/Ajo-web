@@ -5,6 +5,7 @@ export class ApiError extends Error {
   title: string;
   detail: string;
   problem?: ProblemDetail;
+  retryAfterSeconds?: number;
 
   constructor(status: number, title: string, detail: string, problem?: ProblemDetail) {
     super(detail || title || `Request failed with status ${status}`);
@@ -13,6 +14,9 @@ export class ApiError extends Error {
     this.title = title;
     this.detail = detail;
     this.problem = problem;
+    if (problem && typeof problem.retryAfterSeconds === "number") {
+      this.retryAfterSeconds = problem.retryAfterSeconds;
+    }
   }
 }
 

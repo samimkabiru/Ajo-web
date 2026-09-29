@@ -8,6 +8,7 @@ export interface ProblemDetail {
   status?: number;
   detail?: string;
   instance?: string;
+  retryAfterSeconds?: number;
   properties?: Record<string, unknown>;
 }
 

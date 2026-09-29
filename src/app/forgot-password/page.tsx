@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { apiRequestPasswordReset } from "@/lib/api/endpoints";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { Button } from "@/components/ui/button";
@@ -10,9 +10,11 @@ import { Card } from "@/components/ui/card";
 import { getErrorMessage } from "@/lib/api/errors";
 import { KeyRound, AlertCircle, ArrowLeft } from "lucide-react";
 
-export default function ForgotPasswordPage() {
+function ForgotPasswordForm() {
   const router = useRouter();
-  const [phone, setPhone] = useState("");
+  const searchParams = useSearchParams();
+  const initialPhone = searchParams.get("phone") || "";
+  const [phone, setPhone] = useState(initialPhone);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [noticeMsg, setNoticeMsg] = useState<string | null>(null);
@@ -42,6 +44,58 @@ export default function ForgotPasswordPage() {
   };
 
   return (
+    <Card className="p-6 sm:p-7">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {errorMsg && (
+          <div className="p-3.5 rounded-[10px] bg-danger/10 border border-danger/20 flex items-start gap-2.5 text-xs text-danger font-medium leading-snug">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
+
+        {noticeMsg && (
+          <div className="p-3.5 rounded-[10px] bg-primary-tint border border-primary/20 flex items-start gap-2.5 text-xs text-primary font-medium leading-snug">
+            <span>{noticeMsg}</span>
+          </div>
+        )}
+
+        <PhoneInput
+          id="phone"
+          name="phone"
+          label="Registered Phone Number"
+          value={phone}
+          onChange={setPhone}
+          autoComplete="tel"
+          required
+        />
+
+        <Button
+          type="submit"
+          variant="primary"
+          fullWidth
+          isLoading={isLoading}
+          loadingText="Checking number..."
+          className="mt-2"
+        >
+          Request Reset Code
+        </Button>
+      </form>
+
+      <div className="mt-6 pt-5 border-t border-line text-center">
+        <Link
+          href="/login"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted hover:text-ink transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back to log in</span>
+        </Link>
+      </div>
+    </Card>
+  );
+}
+
+export default function ForgotPasswordPage() {
+  return (
     <div className="min-h-screen flex flex-col justify-center items-center px-4 py-8 bg-canvas dark:bg-[#0F1117]">
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
@@ -52,53 +106,9 @@ export default function ForgotPasswordPage() {
           <p className="text-xs sm:text-sm text-muted mt-1">Enter your phone number to receive a reset code</p>
         </div>
 
-        <Card className="p-6 sm:p-7">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {errorMsg && (
-              <div className="p-3.5 rounded-[10px] bg-danger/10 border border-danger/20 flex items-start gap-2.5 text-xs text-danger font-medium leading-snug">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{errorMsg}</span>
-              </div>
-            )}
-
-            {noticeMsg && (
-              <div className="p-3.5 rounded-[10px] bg-primary-tint border border-primary/20 flex items-start gap-2.5 text-xs text-primary font-medium leading-snug">
-                <span>{noticeMsg}</span>
-              </div>
-            )}
-
-            <PhoneInput
-              id="phone"
-              name="phone"
-              label="Registered Phone Number"
-              value={phone}
-              onChange={setPhone}
-              autoComplete="tel"
-              required
-            />
-
-            <Button
-              type="submit"
-              variant="primary"
-              fullWidth
-              isLoading={isLoading}
-              loadingText="Checking number..."
-              className="mt-2"
-            >
-              Request Reset Code
-            </Button>
-          </form>
-
-          <div className="mt-6 pt-5 border-t border-line text-center">
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted hover:text-ink transition-colors"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to log in</span>
-            </Link>
-          </div>
-        </Card>
+        <Suspense fallback={<Card className="p-6 sm:p-7 text-center text-sm text-muted">Loading...</Card>}>
+          <ForgotPasswordForm />
+        </Suspense>
       </div>
     </div>
   );

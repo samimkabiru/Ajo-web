@@ -1,14 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { Button } from "@/components/ui/button";
-import { getErrorMessage } from "@/lib/api/errors";
-import { Eye, EyeOff, AlertCircle, Lock, ArrowRight, ShieldCheck } from "lucide-react";
+import { ApiError, getErrorMessage } from "@/lib/api/errors";
+import { Eye, EyeOff, AlertCircle, Lock, ArrowRight, ShieldCheck, Clock } from "lucide-react";
+
+const RATE_LIMIT_STORAGE_KEY = "ajo_login_unblock_epoch";
+
+function formatCountdown(totalSeconds: number): string {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -20,8 +28,74 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // Rate-limiting unblock epoch timestamp (milliseconds since epoch)
+  const [unblockEpochMs, setUnblockEpochMs] = useState<number | null>(null);
+  const [secondsRemaining, setSecondsRemaining] = useState<number>(0);
+
+  // Restore unblock timestamp from sessionStorage on mount
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem(RATE_LIMIT_STORAGE_KEY);
+      if (stored) {
+        const epoch = parseInt(stored, 10);
+        if (!isNaN(epoch) && epoch > Date.now()) {
+          setUnblockEpochMs(epoch);
+        } else {
+          sessionStorage.removeItem(RATE_LIMIT_STORAGE_KEY);
+        }
+      }
+    } catch {
+      // Ignore sessionStorage restrictions (e.g. private mode)
+    }
+  }, []);
+
+  // Live countdown timer ticking once a second
+  useEffect(() => {
+    if (!unblockEpochMs) {
+      setSecondsRemaining(0);
+      return;
+    }
+
+    const updateRemaining = () => {
+      const now = Date.now();
+      const diff = Math.max(0, Math.ceil((unblockEpochMs - now) / 1000));
+      setSecondsRemaining(diff);
+      if (diff <= 0) {
+        setUnblockEpochMs(null);
+        try {
+          sessionStorage.removeItem(RATE_LIMIT_STORAGE_KEY);
+        } catch {
+          // Ignore
+        }
+      }
+    };
+
+    updateRemaining();
+    const interval = setInterval(updateRemaining, 1000);
+    return () => clearInterval(interval);
+  }, [unblockEpochMs]);
+
+  // Editing phone number immediately clears countdown because rate limits are per number
+  const handlePhoneChange = (newVal: string) => {
+    setPhone(newVal);
+    if (unblockEpochMs) {
+      setUnblockEpochMs(null);
+      try {
+        sessionStorage.removeItem(RATE_LIMIT_STORAGE_KEY);
+      } catch {
+        // Ignore
+      }
+    }
+    if (errorMsg) setErrorMsg(null);
+  };
+
+  const isRateLimited = unblockEpochMs !== null && secondsRemaining > 0;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isRateLimited) {
+      return;
+    }
     if (!phone.trim() || !password) {
       setErrorMsg("Please enter both your phone number and password.");
       return;
@@ -32,7 +106,23 @@ export default function LoginPage() {
       await login(phone.trim(), password);
       router.push("/dashboard");
     } catch (err) {
-      setErrorMsg(getErrorMessage(err));
+      if (err instanceof ApiError && err.status === 429) {
+        // Distinguish 429 from 401 explicitly
+        const retrySec =
+          typeof err.retryAfterSeconds === "number" && err.retryAfterSeconds > 0
+            ? err.retryAfterSeconds
+            : 900;
+        const unblockTime = Date.now() + retrySec * 1000;
+        setUnblockEpochMs(unblockTime);
+        try {
+          sessionStorage.setItem(RATE_LIMIT_STORAGE_KEY, unblockTime.toString());
+        } catch {
+          // Ignore
+        }
+        setErrorMsg(null);
+      } else {
+        setErrorMsg(getErrorMessage(err));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -114,8 +204,28 @@ export default function LoginPage() {
 
           {/* Form card */}
           <div className="bg-surface dark:bg-[#171B22] rounded-[16px] border border-[#E5E7EB] dark:border-white/[0.08] shadow-card p-6 sm:p-7 space-y-4">
-            {/* Error banner */}
-            {errorMsg && (
+            {/* Rate limit 429 banner */}
+            {isRateLimited && (
+              <div
+                role="alert"
+                className="p-3.5 rounded-[12px] bg-amber-500/10 border border-amber-500/25 dark:border-amber-400/30 text-amber-950 dark:text-amber-200 space-y-1.5 transition-all"
+              >
+                <div className="flex items-center gap-2 font-bold text-xs text-amber-950 dark:text-amber-100">
+                  <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                  <span>Too many sign-in attempts</span>
+                </div>
+                <p className="text-xs leading-relaxed text-amber-900/90 dark:text-amber-200/90">
+                  For your security, sign-in is paused for this number. Try again in{" "}
+                  <strong className="font-semibold tabular-nums text-amber-950 dark:text-white">
+                    {formatCountdown(secondsRemaining)}
+                  </strong>{" "}
+                  — or reset your password to sign in right away.
+                </p>
+              </div>
+            )}
+
+            {/* Standard error banner (401 etc) */}
+            {!isRateLimited && errorMsg && (
               <div className="flex items-start gap-2.5 p-3.5 rounded-[10px] bg-red-50 dark:bg-rose-500/10 border border-red-200 dark:border-rose-400/28 text-xs text-red-700 dark:text-rose-300 font-medium leading-snug">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-500 dark:text-rose-400" />
                 <span>{errorMsg}</span>
@@ -129,7 +239,7 @@ export default function LoginPage() {
                 name="phone"
                 label="Phone Number"
                 value={phone}
-                onChange={setPhone}
+                onChange={handlePhoneChange}
                 autoComplete="tel"
                 required
               />
@@ -145,6 +255,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
                 required
+                disabled={isRateLimited}
                 leadingIcon={<Lock className="w-4 h-4" />}
                 trailingSlot={
                   <button
@@ -158,28 +269,73 @@ export default function LoginPage() {
                 }
               />
 
-              {/* Forgot password */}
-              <div className="flex justify-end -mt-1">
-                <Link
-                  href="/forgot-password"
-                  className="text-xs font-semibold text-primary hover:text-primary-dark dark:hover:text-indigo-300 transition-colors"
-                >
-                  Forgot password?
-                </Link>
-              </div>
+              {/* Actions & Escape Hatch */}
+              {isRateLimited ? (
+                <div className="space-y-3 pt-1">
+                  {/* Promoted primary action: Reset password escape hatch */}
+                  <Link
+                    href={
+                      phone.trim()
+                        ? `/forgot-password?phone=${encodeURIComponent(phone.trim())}`
+                        : "/forgot-password"
+                    }
+                    className="block w-full"
+                  >
+                    <Button
+                      type="button"
+                      variant="primary"
+                      fullWidth
+                      size="lg"
+                      className="gap-2 shadow-sm font-semibold"
+                    >
+                      <span>Reset password to sign in</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </Link>
 
-              {/* Submit */}
-              <Button
-                type="submit"
-                variant="primary"
-                fullWidth
-                size="lg"
-                isLoading={isLoading}
-                loadingText="Signing in…"
-              >
-                Log in to Ajo
-                <ArrowRight className="w-4 h-4" />
-              </Button>
+                  {/* Disabled submit button with ticking countdown */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    fullWidth
+                    size="lg"
+                    disabled
+                    className="tabular-nums opacity-60 cursor-not-allowed select-none"
+                  >
+                    <Clock className="w-4 h-4 mr-1.5 text-muted" />
+                    <span>Try again in {formatCountdown(secondsRemaining)}</span>
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Forgot password */}
+                  <div className="flex justify-end -mt-1">
+                    <Link
+                      href={
+                        phone.trim()
+                          ? `/forgot-password?phone=${encodeURIComponent(phone.trim())}`
+                          : "/forgot-password"
+                      }
+                      className="text-xs font-semibold text-primary hover:text-primary-dark dark:hover:text-indigo-300 transition-colors"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
+
+                  {/* Submit */}
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    fullWidth
+                    size="lg"
+                    isLoading={isLoading}
+                    loadingText="Signing in…"
+                  >
+                    Log in to Ajo
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
             </form>
           </div>
 
