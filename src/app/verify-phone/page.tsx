@@ -32,9 +32,37 @@ export default function VerifyPhonePage() {
 
   const hasRequestedRef = useRef(false);
 
-  // Automatically request verification code on mount if authenticated and unverified (run once)
+  const getStorageKey = (userId?: string) => `ajo_phone_code_session_${userId || "current"}`;
+
+  // Automatically restore active session or request verification code on mount (run once)
   useEffect(() => {
-    if (isAuthenticated && user && !user.phoneVerified && !hasRequestedRef.current) {
+    if (!isAuthenticated || !user || user.phoneVerified) return;
+
+    const storageKey = getStorageKey(user.id);
+    const saved = typeof window !== "undefined" ? sessionStorage.getItem(storageKey) : null;
+
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        const expTime = parsed.expiresAt ? new Date(parsed.expiresAt).getTime() : 0;
+        const resendTime = parsed.resendAvailableAt ? new Date(parsed.resendAvailableAt).getTime() : 0;
+        const now = Date.now();
+
+        // If the code is still within its validity window or cooldown
+        if (expTime > now || resendTime > now) {
+          if (expTime > now) setExpiresAt(new Date(parsed.expiresAt));
+          if (resendTime > now) setResendAvailableAt(new Date(parsed.resendAvailableAt));
+          setSuccessMsg("Enter the 6-digit verification code sent to your phone.");
+          hasRequestedRef.current = true;
+          setTimeout(() => inputRefs.current[0]?.focus(), 100);
+          return;
+        }
+      } catch {
+        sessionStorage.removeItem(storageKey);
+      }
+    }
+
+    if (!hasRequestedRef.current) {
       hasRequestedRef.current = true;
       handleRequestCode(false);
     }
@@ -58,32 +86,73 @@ export default function VerifyPhonePage() {
   }, [resendAvailableAt, expiresAt]);
 
   const handleRequestCode = async (isManual = false) => {
+    if (!user) return;
     setIsRequestingCode(true);
     if (isManual) {
       setErrorMsg(null);
     }
+
+    const storageKey = getStorageKey(user.id);
+
     try {
       const res = await apiRequestPhoneVerification();
-      if (res.expiresAt) setExpiresAt(new Date(res.expiresAt));
-      if (res.resendAvailableAt) {
-        setResendAvailableAt(new Date(res.resendAvailableAt));
-      } else {
-        setResendAvailableAt(new Date(Date.now() + 60000));
-      }
+      const codeExpiresAt = res.expiresAt ? new Date(res.expiresAt) : new Date(Date.now() + 10 * 60 * 1000);
+      const codeResendAt = res.resendAvailableAt
+        ? new Date(res.resendAvailableAt)
+        : new Date(Date.now() + 60 * 1000);
+
+      setExpiresAt(codeExpiresAt);
+      setResendAvailableAt(codeResendAt);
       setSuccessMsg("Verification code sent to your phone.");
+
+      // Persist timestamps in sessionStorage so reloading does not trigger another request
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(
+          storageKey,
+          JSON.stringify({
+            expiresAt: codeExpiresAt.toISOString(),
+            resendAvailableAt: codeResendAt.toISOString(),
+            requestedAt: Date.now(),
+          })
+        );
+      }
+
       // Focus first input
       setTimeout(() => inputRefs.current[0]?.focus(), 100);
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
         setErrorMsg("Your phone number is already verified.");
       } else if (err instanceof ApiError && err.status === 429) {
-        // A code was sent moments ago — code is still active and valid!
-        // Start a 60-second cooldown so user waits before requesting another.
-        setResendAvailableAt(new Date(Date.now() + 60000));
+        // A code was sent moments ago, or hourly request rate limit hit
+        const cooldownSecs = err.retryAfterSeconds && err.retryAfterSeconds > 0 ? err.retryAfterSeconds : 60;
+        const codeResendAt = new Date(Date.now() + cooldownSecs * 1000);
+        const codeExpiresAt = expiresAt || new Date(Date.now() + 10 * 60 * 1000);
+
+        setResendAvailableAt(codeResendAt);
+        if (!expiresAt) {
+          setExpiresAt(codeExpiresAt);
+        }
+
+        // Persist cooldown so reloads don't spam 429s
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem(
+            storageKey,
+            JSON.stringify({
+              expiresAt: codeExpiresAt.toISOString(),
+              resendAvailableAt: codeResendAt.toISOString(),
+              requestedAt: Date.now(),
+            })
+          );
+        }
+
         if (isManual) {
-          setErrorMsg("A code was sent moments ago. Please wait before requesting another.");
+          setErrorMsg(
+            err.detail || "Rate limit reached. Please wait before requesting another code."
+          );
         } else {
-          setSuccessMsg("A verification code was sent to your phone. Enter the 6 digits below.");
+          setSuccessMsg(
+            "A verification code was already dispatched to your phone. Enter the 6 digits below to activate your account."
+          );
         }
         setTimeout(() => inputRefs.current[0]?.focus(), 100);
       } else {
@@ -169,6 +238,9 @@ export default function VerifyPhonePage() {
       const updatedUser = await apiConfirmPhoneVerification(code);
       setUser(updatedUser);
       setSuccessMsg("Phone verified successfully!");
+      if (user && typeof window !== "undefined") {
+        sessionStorage.removeItem(getStorageKey(user.id));
+      }
       setTimeout(() => {
         router.push("/dashboard");
       }, 1200);
@@ -303,7 +375,11 @@ export default function VerifyPhonePage() {
               {isRequestingCode ? (
                 <RefreshCw className="w-3 h-3 animate-spin" />
               ) : null}
-              {secondsUntilResend > 0 ? `Resend in ${secondsUntilResend}s` : "Resend code"}
+              {secondsUntilResend > 0
+                ? secondsUntilResend >= 60
+                  ? `Resend in ${Math.floor(secondsUntilResend / 60)}m ${(secondsUntilResend % 60).toString().padStart(2, "0")}s`
+                  : `Resend in ${secondsUntilResend}s`
+                : "Resend code"}
             </button>
           </div>
 

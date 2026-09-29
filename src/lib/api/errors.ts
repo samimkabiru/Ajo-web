@@ -27,13 +27,19 @@ export class ApiError extends Error {
 export async function extractApiError(response: Response): Promise<ApiError> {
   const status = response.status;
   const contentType = response.headers.get("content-type") || "";
+  const retryAfterHeader = response.headers.get("retry-after");
+  const headerRetryAfterSeconds = retryAfterHeader ? parseInt(retryAfterHeader, 10) : undefined;
 
   if (contentType.includes("application/json") || contentType.includes("application/problem+json")) {
     try {
       const data = (await response.json()) as ProblemDetail;
       const title = data.title || response.statusText || "Error";
       const detail = data.detail || (data as Record<string, string>).message || title;
-      return new ApiError(status, title, detail, data);
+      const err = new ApiError(status, title, detail, data);
+      if (!err.retryAfterSeconds && typeof headerRetryAfterSeconds === "number" && !isNaN(headerRetryAfterSeconds)) {
+        err.retryAfterSeconds = headerRetryAfterSeconds;
+      }
+      return err;
     } catch {
       // Fall through to text parsing
     }
@@ -42,7 +48,11 @@ export async function extractApiError(response: Response): Promise<ApiError> {
   try {
     const text = await response.text();
     if (text) {
-      return new ApiError(status, response.statusText || "Error", text);
+      const err = new ApiError(status, response.statusText || "Error", text);
+      if (typeof headerRetryAfterSeconds === "number" && !isNaN(headerRetryAfterSeconds)) {
+        err.retryAfterSeconds = headerRetryAfterSeconds;
+      }
+      return err;
     }
   } catch {
     // Ignore text parse error
