@@ -3,6 +3,7 @@ import {
   AuthResponse,
   UserSummary,
   VerificationCodeRequested,
+  PasswordResetRequested,
   GroupSummary,
   GroupDetail,
   GroupInviteSummary,
@@ -74,8 +75,8 @@ export async function apiConfirmPhoneVerification(code: string): Promise<UserSum
 
 // ======================== PASSWORD RESET ========================
 
-export async function apiRequestPasswordReset(phone: string): Promise<void> {
-  return apiFetch<void>("/auth/password-reset/request", {
+export async function apiRequestPasswordReset(phone: string): Promise<PasswordResetRequested> {
+  return apiFetch<PasswordResetRequested>("/auth/password-reset/request", {
     method: "POST",
     body: JSON.stringify({ phone }),
     skipAuth: true,
@@ -103,8 +104,8 @@ export async function apiGetGroups(): Promise<GroupSummary[]> {
 export async function apiCreateGroup(body: {
   name: string;
   description?: string;
-}): Promise<GroupDetail> {
-  return apiFetch<GroupDetail>("/groups", {
+}): Promise<GroupSummary> {
+  return apiFetch<GroupSummary>("/groups", {
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -116,9 +117,9 @@ export async function apiGetGroup(groupId: string): Promise<GroupDetail> {
 
 export async function apiUpdateGroup(
   groupId: string,
-  body: { name?: string; description?: string }
-): Promise<GroupDetail> {
-  return apiFetch<GroupDetail>(`/groups/${groupId}`, {
+  body: { name: string; description?: string }
+): Promise<GroupSummary> {
+  return apiFetch<GroupSummary>(`/groups/${groupId}`, {
     method: "PATCH",
     body: JSON.stringify(body),
   });

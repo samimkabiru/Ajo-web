@@ -10,7 +10,7 @@ import {
 } from "@/lib/api/endpoints";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getErrorMessage } from "@/lib/api/errors";
+import { ApiError, getErrorMessage } from "@/lib/api/errors";
 import { ShieldCheck, AlertCircle, RefreshCw, Info, CheckCircle2 } from "lucide-react";
 
 export default function VerifyPhonePage() {
@@ -65,7 +65,13 @@ export default function VerifyPhonePage() {
       // Focus first input
       setTimeout(() => inputRefs.current[0]?.focus(), 100);
     } catch (err) {
-      setErrorMsg(getErrorMessage(err));
+      if (err instanceof ApiError && err.status === 409) {
+        setErrorMsg("Your phone number is already verified.");
+      } else if (err instanceof ApiError && err.status === 429) {
+        setErrorMsg("Too many code requests. Please wait a few moments before trying again.");
+      } else {
+        setErrorMsg(getErrorMessage(err));
+      }
     } finally {
       setIsRequestingCode(false);
     }
@@ -150,7 +156,18 @@ export default function VerifyPhonePage() {
         router.push("/dashboard");
       }, 1200);
     } catch (err) {
-      setErrorMsg(getErrorMessage(err));
+      if (err instanceof ApiError && err.status === 410) {
+        setErrorMsg("This verification code has expired. Please click 'Resend Code' to receive a new one.");
+        setDigits(["", "", "", "", "", ""]);
+        inputRefs.current[0]?.focus();
+      } else if (err instanceof ApiError && err.status === 429) {
+        setErrorMsg("Too many incorrect attempts. This code is now invalid; please request a new code.");
+        setDigits(["", "", "", "", "", ""]);
+      } else if (err instanceof ApiError && err.status === 404) {
+        setErrorMsg("No active verification code found or it is no longer valid. Please request a new code.");
+      } else {
+        setErrorMsg(getErrorMessage(err));
+      }
     } finally {
       setIsLoading(false);
     }

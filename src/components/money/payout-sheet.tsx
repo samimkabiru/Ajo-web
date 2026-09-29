@@ -7,7 +7,7 @@ import { useIdempotencyKey } from "@/lib/idempotency";
 import { formatKobo } from "@/lib/money";
 import { apiCollectPayout } from "@/lib/api/endpoints";
 import { PaymentMethod, UserSummary } from "@/lib/api/types";
-import { getErrorMessage } from "@/lib/api/errors";
+import { ApiError, getErrorMessage } from "@/lib/api/errors";
 import { CheckCircle2, AlertCircle, ShieldCheck, ArrowDownCircle, Info } from "lucide-react";
 
 interface PayoutSheetProps {
@@ -86,7 +86,14 @@ export function PayoutSheet({
         onClose();
       }, 1500);
     } catch (err) {
-      setErrorMsg(getErrorMessage(err));
+      if (err instanceof ApiError && err.status === 409) {
+        setErrorMsg(
+          "The beneficiary or state for this cycle has changed (e.g. following a position swap or payout). Updating rotation schedule..."
+        );
+        onSuccess();
+      } else {
+        setErrorMsg(getErrorMessage(err));
+      }
     } finally {
       setIsLoading(false);
     }

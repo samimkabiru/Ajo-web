@@ -32,7 +32,8 @@ export interface VerificationCodeRequested {
 }
 
 export interface PasswordResetRequested {
-  phone: string;
+  ttlSeconds: number;
+  resendCooldownSeconds: number;
 }
 
 export type GroupRole = "ADMIN" | "MEMBER";
@@ -183,31 +184,39 @@ export interface ShortfallClaimSummary {
   createdAt: string;
 }
 
-export type SwapStatus = "PENDING" | "ACCEPTED" | "DECLINED" | "CANCELLED";
+export type SwapStatus = "PENDING" | "ACCEPTED" | "DECLINED" | "CANCELLED" | "SUPERSEDED";
 
 export interface SwapRequestSummary {
   id: string;
   roundId: string;
-  requesterParticipant: ParticipantSummary;
-  targetParticipant: ParticipantSummary;
+  requesterParticipantId?: string;
+  requesterParticipant?: ParticipantSummary;
+  targetParticipantId?: string;
+  targetParticipant?: ParticipantSummary;
+  requester?: UserSummary;
+  target?: UserSummary;
   requesterPosition: number;
   targetPosition: number;
   status: SwapStatus;
   createdAt: string;
+  respondedAt?: string | null;
   resolvedAt?: string | null;
 }
 
-export type ExitStatus = "PENDING" | "COMPLETED" | "CANCELLED";
+export type ExitStatus = "PENDING_SETTLEMENT" | "COMPLETED" | "CANCELLED";
 
 export interface ExitRequestSummary {
   id: string;
   roundId: string;
-  participant: ParticipantSummary;
+  participantId?: string;
+  participant?: UserSummary | ParticipantSummary;
   status: ExitStatus;
-  exposureKobo: number;
+  exposureAtRequest?: number;
+  exposureKobo?: number;
   refundKobo?: number;
   repayKobo?: number;
-  createdAt: string;
+  requestedAt: string;
+  createdAt?: string;
   completedAt?: string | null;
 }
 

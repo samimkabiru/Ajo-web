@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
@@ -31,11 +31,23 @@ export function ExitSheet({
   participantId,
 }: ExitSheetProps) {
   const queryClient = useQueryClient();
-  const { key, initIntent } = useIdempotencyKey();
+  const { key, initIntent, resetIntent } = useIdempotencyKey();
 
   const [repayAmountNaira, setRepayAmountNaira] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Initialize idempotency key when user opens the modal; reset on close
+  useEffect(() => {
+    if (isOpen) {
+      initIntent();
+      setErrorMsg(null);
+      setSuccessMsg(null);
+      setRepayAmountNaira("");
+    } else {
+      resetIntent();
+    }
+  }, [isOpen, initIntent, resetIntent]);
 
   // Participant exposure
   const { data: exposure, isLoading: isExposureLoading } = useQuery({
@@ -78,7 +90,7 @@ export function ExitSheet({
 
   const repayMutation = useMutation({
     mutationFn: (amountKobo: number) => {
-      const idempotencyKey = initIntent();
+      const idempotencyKey = key || initIntent();
       return apiRepay(participantId!, amountKobo, idempotencyKey);
     },
     onSuccess: () => {
@@ -135,9 +147,16 @@ export function ExitSheet({
           <div className="p-4 rounded-[12px] bg-accent-tint/50 border border-accent/30 space-y-2">
             <div className="flex items-center justify-between">
               <span className="font-heading font-bold text-sm text-ink">
-                Active Exit Request: {myExit.status}
+                Active Exit Request:{" "}
+                <span className="font-semibold text-primary">
+                  {myExit.status === "PENDING_SETTLEMENT"
+                    ? "Pending Settlement"
+                    : myExit.status === "COMPLETED"
+                    ? "Completed"
+                    : myExit.status}
+                </span>
               </span>
-              {myExit.status === "PENDING" && (
+              {(myExit.status === "PENDING_SETTLEMENT" || (myExit.status as string) === "PENDING") && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -149,7 +168,11 @@ export function ExitSheet({
               )}
             </div>
             <p className="text-xs text-muted">
-              Submitted on {new Date(myExit.createdAt).toLocaleDateString()}.
+              Submitted on{" "}
+              {new Date(
+                myExit.requestedAt || myExit.createdAt || Date.now()
+              ).toLocaleDateString()}
+              .
               {isOwedRefund && " You are queued for a refund when replacement funds arrive."}
             </p>
           </div>
