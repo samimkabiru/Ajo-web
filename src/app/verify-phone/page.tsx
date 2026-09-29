@@ -158,7 +158,7 @@ export default function VerifyPhonePage() {
 
   if (!isAuthenticated && !user) {
     return (
-      <div className="min-h-screen flex flex-col justify-center items-center px-4 py-8 bg-canvas">
+      <div className="min-h-screen flex flex-col justify-center items-center px-4 py-8 bg-canvas dark:bg-[#0F1117]">
         <Card className="max-w-md p-6 text-center">
           <AlertCircle className="w-12 h-12 text-warning mx-auto mb-3" />
           <h2 className="font-heading text-lg font-bold text-ink mb-2">Login Required</h2>
@@ -173,7 +173,7 @@ export default function VerifyPhonePage() {
 
   if (user?.phoneVerified) {
     return (
-      <div className="min-h-screen flex flex-col justify-center items-center px-4 py-8 bg-canvas">
+      <div className="min-h-screen flex flex-col justify-center items-center px-4 py-8 bg-canvas dark:bg-[#0F1117]">
         <Card className="max-w-md p-8 text-center space-y-4">
           <div className="w-14 h-14 bg-positive/10 text-positive rounded-full flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-8 h-8" />
@@ -191,10 +191,10 @@ export default function VerifyPhonePage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-8 bg-canvas">
+    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-8 bg-canvas dark:bg-[#0F1117]">
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-primary-tint text-primary flex items-center justify-center mx-auto mb-3">
+          <div className="w-12 h-12 rounded-2xl bg-primary-tint text-primary dark:bg-indigo-500/15 dark:text-indigo-400 flex items-center justify-center mx-auto mb-3 shadow-xs">
             <ShieldCheck className="w-6 h-6" />
           </div>
           <h1 className="font-heading text-2xl font-bold text-ink">Verify your phone</h1>
@@ -218,7 +218,7 @@ export default function VerifyPhonePage() {
             </div>
           )}
 
-          <div className="p-3 mb-6 rounded-lg bg-canvas border border-line text-xs text-muted flex items-start gap-2">
+          <div className="p-3 mb-6 rounded-lg bg-canvas dark:bg-[#0C0F14] border border-line dark:border-white/10 text-xs text-muted flex items-start gap-2">
             <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
             <span>
               <strong>Development Notice:</strong> In dev mode, SMS is simulated. The 6-digit code is logged in the backend server output.
@@ -243,7 +243,7 @@ export default function VerifyPhonePage() {
                 onPaste={handlePaste}
                 autoComplete="one-time-code"
                 aria-label={`Digit ${idx + 1}`}
-                className="w-12 h-14 sm:w-14 sm:h-16 text-center text-xl sm:text-2xl font-bold font-heading rounded-[10px] border border-line bg-surface text-ink focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all tabular-nums"
+                className="w-11 h-13 sm:w-13 sm:h-15 text-center text-xl sm:text-2xl font-bold font-heading rounded-[10px] border border-line bg-surface text-ink dark:bg-[#0C0F14] dark:border-white/10 dark:text-white dark:shadow-[inset_0_2px_4px_rgba(0,0,0,0.50)] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 dark:focus:border-indigo-400 dark:focus:ring-indigo-400/20 outline-none transition-all tabular-nums"
               />
             ))}
           </div>

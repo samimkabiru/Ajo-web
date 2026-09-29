@@ -47,10 +47,13 @@ export function DatePicker({
             disabled={disabled}
             className={cn(
               "flex h-10 w-full items-center justify-between rounded-[9px] border border-line bg-surface px-3 py-2 text-sm transition-all duration-120 touch-press text-left",
+              "dark:bg-[#14171B] dark:border-white/10 dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] dark:hover:border-white/20",
               "hover:border-ink/20 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
-              disabled && "cursor-not-allowed opacity-50",
+              "dark:focus:ring-2 dark:focus:ring-primary/25 dark:focus:border-primary dark:focus:shadow-[0_0_16px_rgba(129,140,248,0.20)]",
+              disabled && "cursor-not-allowed opacity-50 dark:disabled:bg-[#0E1013]",
               !value && "text-muted",
-              open && "border-primary ring-2 ring-primary/20"
+              open &&
+                "border-primary ring-2 ring-primary/20 dark:border-primary dark:ring-primary/30 dark:shadow-[0_0_16px_rgba(129,140,248,0.20)]"
             )}
           >
             <span className="flex items-center gap-2 truncate">
@@ -74,7 +77,7 @@ export function DatePicker({
               e.stopPropagation();
               onChange("");
             }}
-            className="absolute right-2.5 p-1 rounded-full text-muted hover:text-ink hover:bg-canvas transition-colors touch-press"
+            className="absolute right-2.5 p-1 rounded-full text-muted hover:text-ink hover:bg-canvas dark:hover:bg-white/10 transition-colors touch-press"
             title="Clear date"
           >
             <X className="w-3.5 h-3.5" />

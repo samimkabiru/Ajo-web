@@ -445,10 +445,10 @@ export default function RoundDetailPage() {
                   round.participants.map((p, idx) => (
                     <div
                       key={p.id}
-                      className="p-3.5 rounded-[10px] border border-line bg-surface flex items-center justify-between"
+                      className="p-3.5 rounded-[10px] border border-line dark:border-white/10 bg-surface dark:bg-[#14171B] flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="w-7 h-7 rounded-full bg-primary-tint text-primary text-xs font-bold flex items-center justify-center tabular-nums">
+                        <span className="w-7 h-7 rounded-full bg-primary-tint text-primary dark:bg-indigo-500/20 dark:text-indigo-300 dark:shadow-[0_0_8px_rgba(129,140,248,0.18)] text-xs font-bold flex items-center justify-center tabular-nums">
                           #{p.position || idx + 1}
                         </span>
                         <div>
@@ -457,7 +457,7 @@ export default function RoundDetailPage() {
                               {p.user.fullName}
                             </span>
                             {p.user.id === user?.id && (
-                              <span className="text-[10px] bg-line/60 text-muted px-1.5 py-0.5 rounded font-medium">
+                              <span className="text-[10px] bg-line/60 dark:bg-white/10 text-muted px-1.5 py-0.5 rounded font-medium">
                                 You
                               </span>
                             )}
@@ -577,7 +577,7 @@ export default function RoundDetailPage() {
             {/* Selected Cycle Detail Card */}
             {currentCycle && (
               <Card className="p-5 sm:p-6 space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line/60">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line/60 dark:border-white/10">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-heading font-extrabold text-xl text-ink">
@@ -611,7 +611,7 @@ export default function RoundDetailPage() {
                     )}
 
                     {hasUserContributedToCycle && (
-                      <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] bg-positive/10 text-positive font-bold text-xs">
+                      <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] bg-positive/10 text-positive dark:bg-emerald-500/15 dark:border dark:border-emerald-500/30 dark:shadow-[0_0_12px_rgba(16,185,129,0.2)] font-bold text-xs">
                         <CheckCircle2 className="w-4 h-4" />
                         You Paid ✓
                       </span>
@@ -634,9 +634,9 @@ export default function RoundDetailPage() {
                 </div>
 
                 {/* Beneficiary Banner */}
-                <div className="p-4 rounded-[12px] bg-canvas border border-line flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="p-4 rounded-[12px] bg-canvas dark:bg-[#14171B] border border-line dark:border-white/10 dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-accent-tint text-accent flex items-center justify-center font-bold text-sm">
+                    <div className="w-10 h-10 rounded-full bg-accent-tint text-accent dark:bg-amber-500/20 dark:text-amber-400 dark:shadow-[0_0_10px_rgba(245,158,11,0.2)] flex items-center justify-center font-bold text-sm">
                       {currentCycle.beneficiary?.fullName?.charAt(0) || "?"}
                     </div>
                     <div>
@@ -682,10 +682,10 @@ export default function RoundDetailPage() {
                       return (
                         <div
                           key={p.id}
-                          className="p-3 rounded-[10px] border border-line bg-surface flex items-center justify-between"
+                          className="p-3 rounded-[10px] border border-line dark:border-white/10 bg-surface dark:bg-[#14171B] flex items-center justify-between"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-line/50 text-ink flex items-center justify-center text-xs font-bold">
+                            <div className="w-8 h-8 rounded-full bg-line/50 dark:bg-white/10 text-ink flex items-center justify-center text-xs font-bold">
                               {p.user.fullName.charAt(0)}
                             </div>
                             <div>
@@ -694,7 +694,7 @@ export default function RoundDetailPage() {
                                   {p.user.fullName}
                                 </span>
                                 {p.user.id === user?.id && (
-                                  <span className="text-[10px] bg-line/60 text-muted px-1 rounded">
+                                  <span className="text-[10px] bg-line/60 dark:bg-white/10 text-muted px-1 rounded">
                                     You
                                   </span>
                                 )}
@@ -716,7 +716,7 @@ export default function RoundDetailPage() {
                                 </span>
                               </div>
                             ) : (
-                              <span className="text-xs font-medium text-muted bg-canvas px-2.5 py-1 rounded-full border border-line">
+                              <span className="text-xs font-medium text-muted bg-canvas dark:bg-white/5 px-2.5 py-1 rounded-full border border-line dark:border-white/10">
                                 Unpaid
                               </span>
                             )}

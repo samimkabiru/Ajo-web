@@ -30,7 +30,7 @@ export function CycleTimeline({
   return (
     <div className="w-full">
       {/* Mobile: Connected Vertical Timeline */}
-      <div className="sm:hidden relative pl-6 space-y-3 before:absolute before:left-2.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-line">
+      <div className="sm:hidden relative pl-6 space-y-3 before:absolute before:left-2.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-line dark:before:bg-white/10">
         {cycles.map((cycle, index) => {
           const isSelected = activeCycleId === cycle.id;
           const isUserBeneficiary = cycle.beneficiary?.id === currentUserId;
@@ -44,12 +44,12 @@ export function CycleTimeline({
                 className={cn(
                   "absolute -left-6 top-3.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all z-10",
                   isPaid
-                    ? "bg-positive text-white ring-4 ring-canvas"
+                    ? "bg-positive text-white ring-4 ring-canvas dark:ring-[#0F1117] dark:shadow-[0_0_10px_rgba(52,211,153,0.35)]"
                     : isOpen
-                    ? "bg-accent text-white ring-4 ring-accent-tint animate-pulse"
+                    ? "bg-accent text-white ring-4 ring-accent-tint dark:ring-amber-500/20 dark:shadow-[0_0_12px_rgba(245,158,11,0.35)] animate-pulse"
                     : isSelected
-                    ? "bg-primary text-white ring-4 ring-primary-tint"
-                    : "bg-surface border border-line text-muted"
+                    ? "bg-primary text-white ring-4 ring-primary-tint dark:ring-indigo-500/20"
+                    : "bg-surface dark:bg-[#171B22] border border-line dark:border-white/10 text-muted"
                 )}
               >
                 {isPaid ? <Check className="w-3 h-3 stroke-[3]" /> : cycle.cycleNumber}
@@ -59,10 +59,10 @@ export function CycleTimeline({
               <div
                 onClick={() => onSelectCycle(cycle)}
                 className={cn(
-                  "p-4 rounded-[12px] border transition-all cursor-pointer touch-press bg-surface",
+                  "p-4 rounded-[12px] border transition-all cursor-pointer touch-press bg-surface dark:bg-[#171B22]",
                   isSelected
-                    ? "border-primary ring-2 ring-primary/10 shadow-sm"
-                    : "border-line hover:border-muted/40 shadow-xs"
+                    ? "border-primary ring-2 ring-primary/15 dark:border-indigo-400 dark:ring-indigo-400/20"
+                    : "border-line dark:border-white/10 hover:border-muted/40 dark:hover:border-white/20 shadow-xs"
                 )}
               >
                 <div className="flex items-center justify-between gap-2 mb-2">
@@ -79,7 +79,7 @@ export function CycleTimeline({
                   <CycleStatusBadge status={cycle.status} />
                 </div>
 
-                <div className="flex items-center justify-between text-xs text-muted pt-2 border-t border-line/50">
+                <div className="flex items-center justify-between text-xs text-muted pt-2 border-t border-line/50 dark:border-white/10">
                   <span className="flex items-center gap-1.5 text-ink font-medium truncate max-w-[160px]">
                     <User className="w-3.5 h-3.5 text-muted shrink-0" />
                     {cycle.status === "VACANT"
@@ -117,16 +117,16 @@ export function CycleTimeline({
                 key={cycle.id}
                 onClick={() => onSelectCycle(cycle)}
                 className={cn(
-                  "w-60 p-4 rounded-[14px] border bg-surface flex flex-col justify-between cursor-pointer transition-all duration-150 touch-press relative",
+                  "w-60 p-4 rounded-[14px] border bg-surface dark:bg-[#171B22] flex flex-col justify-between cursor-pointer transition-all duration-150 touch-press relative",
                   isSelected
-                    ? "border-primary ring-2 ring-primary/10 shadow-card"
-                    : "border-line hover:border-primary/30 shadow-subtle hover:-translate-y-0.5",
-                  isOpen && "ring-1 ring-accent/30"
+                    ? "border-primary ring-2 ring-primary/15 dark:border-indigo-400 dark:ring-indigo-400/20"
+                    : "border-line dark:border-white/10 hover:border-primary/30 dark:hover:border-indigo-400/30 shadow-subtle hover:-translate-y-0.5",
+                  isOpen && "ring-1 ring-accent/30 dark:ring-amber-500/40 dark:shadow-[0_0_14px_rgba(245,158,11,0.12)]"
                 )}
               >
                 {/* Active Indicator Micro-pill */}
                 {isOpen && (
-                  <div className="absolute -top-2.5 left-4 bg-accent text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs flex items-center gap-1">
+                  <div className="absolute -top-2.5 left-4 bg-accent text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs dark:shadow-[0_0_10px_rgba(245,158,11,0.35)] flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
                     Current Active Pot
                   </div>
@@ -155,7 +155,7 @@ export function CycleTimeline({
                     <CycleStatusBadge status={cycle.status} />
                   </div>
 
-                  <div className="my-2 p-2.5 rounded-[10px] bg-canvas/70 border border-line/60">
+                  <div className="my-2 p-2.5 rounded-[10px] bg-canvas/70 dark:bg-[#0C0F14] border border-line/60 dark:border-white/10">
                     <span className="text-[10px] uppercase font-semibold tracking-wider text-muted block mb-0.5">
                       Beneficiary
                     </span>
@@ -173,7 +173,7 @@ export function CycleTimeline({
                   </div>
                 </div>
 
-                <div className="pt-2.5 border-t border-line/60 flex items-center justify-between text-xs text-muted tabular-nums">
+                <div className="pt-2.5 border-t border-line/60 dark:border-white/10 flex items-center justify-between text-xs text-muted tabular-nums">
                   <span className="flex items-center gap-1 text-[11px]">
                     <Clock className="w-3 h-3 text-muted" />
                     Due:{" "}
@@ -187,7 +187,7 @@ export function CycleTimeline({
                   <span
                     className={cn(
                       "text-[11px] font-bold",
-                      isSelected ? "text-primary underline" : "text-muted"
+                      isSelected ? "text-primary dark:text-indigo-400 underline" : "text-muted"
                     )}
                   >
                     {isSelected ? "Active" : "Inspect"}

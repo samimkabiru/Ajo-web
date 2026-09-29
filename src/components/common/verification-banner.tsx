@@ -13,7 +13,7 @@ export function VerificationBanner() {
   }
 
   return (
-    <div className="bg-warning/10 border-b border-warning/20 px-4 py-2.5 text-xs sm:text-sm text-ink flex items-center justify-between gap-3">
+    <div className="bg-warning/8 dark:bg-amber-500/10 border-b border-warning/20 dark:border-amber-500/25 px-4 py-2.5 text-xs sm:text-sm text-ink flex items-center justify-between gap-3">
       <div className="flex items-center gap-2">
         <AlertCircle className="w-4 h-4 text-warning shrink-0" />
         <span className="text-muted">

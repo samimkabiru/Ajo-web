@@ -45,7 +45,7 @@ export function Modal({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
             onClick={onClose}
-            className="fixed inset-0 bg-ink/35 backdrop-blur-sm"
+            className="fixed inset-0 bg-ink/35 dark:bg-black/75 backdrop-blur-sm"
           />
 
           {/* Modal Card / Bottom Sheet on mobile */}
@@ -55,12 +55,13 @@ export function Modal({
             exit={{ y: "100%", opacity: 0 }}
             transition={{ type: "spring", damping: 30, stiffness: 350, duration: 0.22 }}
             className={cn(
-              "relative w-full rounded-t-[20px] sm:rounded-[16px] bg-surface p-6 shadow-elevation border border-line z-10 max-h-[90vh] overflow-y-auto",
+              "relative w-full rounded-t-[20px] sm:rounded-[16px] bg-surface p-6 shadow-elevation border border-[#E5E7EB] z-10 max-h-[90vh] overflow-y-auto",
+              "dark:bg-[#1E2330] dark:border-white/12 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.07),0_24px_64px_-12px_rgba(0,0,0,0.82),0_0_28px_rgba(129,140,248,0.09)]",
               maxWidth
             )}
           >
             {/* Mobile drag handle */}
-            <div className="sm:hidden w-12 h-1.5 bg-line rounded-full mx-auto mb-4" />
+            <div className="sm:hidden w-12 h-1.5 bg-line dark:bg-white/20 rounded-full mx-auto mb-4" />
 
             <div className="flex items-start justify-between mb-4">
               <div>
@@ -74,7 +75,7 @@ export function Modal({
               <button
                 type="button"
                 onClick={onClose}
-                className="p-1.5 rounded-lg text-muted hover:text-ink hover:bg-canvas transition-colors touch-press"
+                className="p-1.5 rounded-lg text-muted hover:text-ink hover:bg-canvas dark:hover:bg-white/10 transition-colors touch-press"
               >
                 <X className="w-5 h-5" />
               </button>

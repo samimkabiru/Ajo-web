@@ -1,9 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
 import { useAuth } from "@/context/auth-context";
+import { Modal } from "@/components/ui/modal";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/common/theme-toggle";
 import {
   Users,
   LayoutDashboard,
@@ -11,20 +15,19 @@ import {
   LogOut,
   ShieldCheck,
   ShieldAlert,
-  Coins,
-  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function NavHeader() {
   const { user, logout, isPhoneVerified } = useAuth();
   const pathname = usePathname();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   if (!user) {
     return (
       <header className="sticky top-0 z-40 bg-surface/85 backdrop-blur-xl border-b border-line/60 px-4 sm:px-8 py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5 group touch-press">
-          <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white font-heading font-black text-base shadow-sm ring-1 ring-white/20">
+          <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white font-heading font-black text-base shadow-sm ring-1 ring-white/20">
             A
           </div>
           <div className="flex items-center gap-1.5">
@@ -35,7 +38,8 @@ export function NavHeader() {
           </div>
         </Link>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
           <Link
             href="/login"
             className="text-xs sm:text-sm font-semibold text-muted hover:text-ink px-3 py-1.5 rounded-[8px] transition-colors touch-press"
@@ -60,95 +64,141 @@ export function NavHeader() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-surface/85 backdrop-blur-xl border-b border-line/60">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          {/* Jewel Brand Logo */}
-          <Link href="/dashboard" className="flex items-center gap-2.5 group touch-press">
-            <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white font-heading font-black text-base shadow-sm ring-1 ring-white/20 group-hover:scale-[1.03] transition-transform">
-              A
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-heading font-extrabold text-lg tracking-tight text-ink">
-                Ajo
-              </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-positive" title="Online" />
-            </div>
-          </Link>
+    <>
+      <header className="sticky top-0 z-40 bg-surface/90 dark:bg-[#171B22]/90 backdrop-blur-xl border-b border-line/60 dark:border-white/[0.07]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            {/* Jewel Brand Logo */}
+            <Link href="/dashboard" className="flex items-center gap-2.5 group touch-press">
+              <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white font-heading font-black text-base shadow-sm ring-1 ring-white/20 group-hover:scale-[1.03] transition-transform">
+                A
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="font-heading font-extrabold text-lg tracking-tight text-ink">
+                  Ajo
+                </span>
+                <span className="w-1.5 h-1.5 rounded-full bg-positive" title="Online" />
+              </div>
+            </Link>
 
-          {/* Segmented Pill Navigation */}
-          <nav className="hidden sm:flex items-center p-1 rounded-[10px] bg-canvas border border-line/60">
-            {navLinks.map((link) => {
-              const Icon = link.icon;
-              const isActive = pathname.startsWith(link.href);
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={cn(
-                    "flex items-center gap-1.5 px-3 py-1 rounded-[7px] text-xs font-semibold transition-all duration-120 touch-press",
-                    isActive
-                      ? "bg-surface text-ink shadow-xs border border-line/40"
-                      : "text-muted hover:text-ink hover:bg-surface/50"
-                  )}
-                >
-                  <Icon
+            {/* Segmented Sliding Pill Navigation */}
+            <nav className="hidden sm:flex items-center p-1 rounded-[10px] bg-canvas dark:bg-[#0F1117] border border-line/60 dark:border-white/10 relative">
+              {navLinks.map((link) => {
+                const Icon = link.icon;
+                const isActive = pathname.startsWith(link.href);
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
                     className={cn(
-                      "w-3.5 h-3.5 transition-colors",
-                      isActive ? "text-primary" : "text-muted"
+                      "relative flex items-center gap-1.5 px-3 py-1 rounded-[7px] text-xs font-semibold transition-colors duration-150 touch-press select-none",
+                      isActive ? "text-ink font-bold" : "text-muted hover:text-ink"
                     )}
-                  />
-                  <span>{link.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
+                  >
+                    {isActive && (
+                      <motion.span
+                        layoutId="activeNavPill"
+                        className="absolute inset-0 rounded-[7px] bg-surface dark:bg-[#1E2330] shadow-xs border border-[#E5E7EB] dark:border-indigo-400/20 z-0"
+                        transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                      />
+                    )}
+                    <Icon
+                      className={cn(
+                        "w-3.5 h-3.5 relative z-10 transition-colors",
+                        isActive ? "text-primary" : "text-muted"
+                      )}
+                    />
+                    <span className="relative z-10">{link.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
 
-        {/* Right Actions: Phone Status & Profile */}
-        <div className="flex items-center gap-2.5">
-          <Link
-            href="/verify-phone"
-            title={isPhoneVerified ? "Phone verified" : "Click to verify phone"}
-            className={cn(
-              "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all touch-press",
-              isPhoneVerified
-                ? "bg-positive-tint text-positive border border-positive/30 hover:bg-positive-tint/80"
-                : "bg-warning-tint text-warning border border-warning/30 hover:bg-warning-tint/80 animate-pulse"
-            )}
-          >
-            {isPhoneVerified ? (
-              <>
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Verified</span>
-              </>
-            ) : (
-              <>
-                <ShieldAlert className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Verify Phone</span>
-              </>
-            )}
-          </Link>
+          {/* Right Actions: Theme, Phone Status & Profile */}
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <ThemeToggle />
 
-          {/* User Badge */}
-          <div className="flex items-center gap-2 pl-1 border-l border-line/60">
-            <div className="w-8 h-8 rounded-[9px] bg-gradient-to-br from-primary-tint to-primary/10 border border-primary/20 flex items-center justify-center text-xs font-heading font-bold text-primary shadow-xs">
-              {user.fullName.charAt(0).toUpperCase()}
-            </div>
-            <span className="text-xs font-bold text-ink hidden md:inline truncate max-w-[120px]">
-              {user.fullName.split(" ")[0]}
-            </span>
-            <button
-              onClick={() => logout()}
-              title="Log out"
-              className="p-1.5 text-muted hover:text-danger rounded-[7px] hover:bg-canvas transition-colors touch-press"
+            <Link
+              href="/verify-phone"
+              title={isPhoneVerified ? "Phone verified" : "Click to verify phone"}
+              className={cn(
+                "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all touch-press",
+                isPhoneVerified
+                  ? "bg-positive/10 text-positive border border-positive/25 hover:bg-positive/15 dark:bg-emerald-400/15 dark:text-emerald-300 dark:border-emerald-400/35 dark:shadow-[0_0_10px_rgba(52,211,153,0.18)]"
+                  : "bg-warning/10 text-warning border border-warning/25 hover:bg-warning/15 animate-pulse dark:bg-amber-400/15 dark:text-amber-300 dark:border-amber-400/35 dark:shadow-[0_0_10px_rgba(251,191,36,0.18)]"
+              )}
             >
-              <LogOut className="w-3.5 h-3.5" />
-            </button>
+              {isPhoneVerified ? (
+                <>
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Verified</span>
+                </>
+              ) : (
+                <>
+                  <ShieldAlert className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Verify Phone</span>
+                </>
+              )}
+            </Link>
+
+            {/* User Profile & Logout */}
+            <div className="flex items-center gap-2 pl-1 border-l border-line/60">
+              <div className="w-8 h-8 rounded-[9px] bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-500/20 dark:to-indigo-500/5 border border-indigo-200 dark:border-indigo-400/30 flex items-center justify-center text-xs font-heading font-bold text-primary shadow-xs">
+                {user.fullName.charAt(0).toUpperCase()}
+              </div>
+              <span className="text-xs font-bold text-ink hidden md:inline truncate max-w-[120px]">
+                {user.fullName.split(" ")[0]}
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsLogoutModalOpen(true)}
+                title="Log out"
+                className="p-1.5 text-muted hover:text-danger rounded-[7px] hover:bg-canvas transition-colors touch-press"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        title="Sign out of Ajo"
+        description="Are you sure you want to sign out of your account on this device?"
+      >
+        <div className="space-y-4 pt-2">
+          <p className="text-xs sm:text-sm text-muted leading-relaxed">
+            You will need your phone number and password to log back into your active savings circles, turns, and cycle contributions.
+          </p>
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-line/60">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsLogoutModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              size="sm"
+              onClick={async () => {
+                setIsLogoutModalOpen(false);
+                await logout();
+              }}
+            >
+              <LogOut className="w-3.5 h-3.5 mr-1.5" />
+              Sign Out
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    </>
   );
 }
 
@@ -165,7 +215,7 @@ export function MobileBottomNav() {
   ];
 
   return (
-    <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/90 backdrop-blur-xl border-t border-line/60 px-4 py-1.5 flex items-center justify-around shadow-elevation">
+    <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/90 dark:bg-[#171B22]/92 backdrop-blur-xl border-t border-line/60 dark:border-white/[0.07] px-4 py-1.5 flex items-center justify-around shadow-elevation">
       {navLinks.map((link) => {
         const Icon = link.icon;
         const isActive = pathname.startsWith(link.href);
@@ -174,14 +224,19 @@ export function MobileBottomNav() {
             key={link.href}
             href={link.href}
             className={cn(
-              "flex flex-col items-center gap-0.5 py-1 px-3 rounded-[9px] text-[11px] font-semibold transition-all touch-press",
-              isActive
-                ? "text-primary font-bold scale-[1.05]"
-                : "text-muted hover:text-ink"
+              "relative flex flex-col items-center gap-0.5 py-1 px-4 rounded-[9px] text-[11px] font-semibold transition-all touch-press",
+              isActive ? "text-primary font-bold" : "text-muted hover:text-ink"
             )}
           >
-            <Icon className="w-4 h-4" />
-            <span>{link.label}</span>
+            {isActive && (
+              <motion.span
+                layoutId="mobileNavPill"
+                className="absolute inset-0 rounded-[9px] bg-indigo-50 dark:bg-indigo-500/12 z-0"
+                transition={{ type: "spring", stiffness: 450, damping: 35 }}
+              />
+            )}
+            <Icon className="w-4 h-4 relative z-10" />
+            <span className="relative z-10">{link.label}</span>
           </Link>
         );
       })}

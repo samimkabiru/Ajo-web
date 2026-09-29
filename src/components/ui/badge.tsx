@@ -8,18 +8,35 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-line/70 text-ink",
-        primary: "bg-primary-tint text-primary font-semibold",
-        positive: "bg-positive/10 text-positive border border-positive/20",
-        warning: "bg-warning/10 text-warning border border-warning/20",
-        danger: "bg-danger/10 text-danger border border-danger/20",
-        accent: "bg-accent-tint text-accent border border-accent/20",
-        neutral: "bg-canvas border border-line text-muted",
+        default:
+          "bg-[#F3F4F6] text-[#374151] dark:bg-white/10 dark:text-white/70",
+
+        primary:
+          "bg-indigo-50 text-indigo-700 border border-indigo-200 font-semibold " +
+          "dark:bg-indigo-500/18 dark:text-indigo-300 dark:border-indigo-400/35",
+
+        positive:
+          "bg-green-50 text-green-700 border border-green-200 " +
+          "dark:bg-green-400/15 dark:text-green-300 dark:border-green-400/32",
+
+        warning:
+          "bg-amber-50 text-amber-700 border border-amber-200 " +
+          "dark:bg-amber-400/15 dark:text-amber-300 dark:border-amber-400/32",
+
+        danger:
+          "bg-red-50 text-red-700 border border-red-200 " +
+          "dark:bg-rose-400/15 dark:text-rose-300 dark:border-rose-400/32",
+
+        accent:
+          "bg-amber-50 text-amber-700 border border-amber-200 " +
+          "dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-400/32",
+
+        neutral:
+          "bg-[#F9FAFB] text-[#6B7280] border border-[#E5E7EB] " +
+          "dark:bg-white/[0.06] dark:border-white/12 dark:text-white/50",
       },
     },
-    defaultVariants: {
-      variant: "default",
-    },
+    defaultVariants: { variant: "default" },
   }
 );
 
@@ -31,44 +48,40 @@ export function Badge({ className, variant, ...props }: BadgeProps) {
   return <span className={cn(badgeVariants({ variant }), className)} {...props} />;
 }
 
-/**
- * Cycle Status Badge handling all 5 cycle states explicitly:
- * SCHEDULED, OPEN, PAID, VACANT, SETTLED
- */
 export function CycleStatusBadge({ status }: { status: CycleStatus }) {
   switch (status) {
     case "OPEN":
       return (
         <Badge variant="accent" className="font-semibold">
-          <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400 animate-pulse" />
           Open
         </Badge>
       );
     case "PAID":
       return (
         <Badge variant="positive">
-          <span className="w-1.5 h-1.5 rounded-full bg-positive" />
+          <span className="w-1.5 h-1.5 rounded-full bg-green-500 dark:bg-green-400" />
           Paid ✓
         </Badge>
       );
     case "SCHEDULED":
       return (
         <Badge variant="neutral">
-          <span className="w-1.5 h-1.5 rounded-full bg-muted" />
+          <span className="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-white/40" />
           Scheduled
         </Badge>
       );
     case "VACANT":
       return (
         <Badge variant="danger">
-          <span className="w-1.5 h-1.5 rounded-full bg-danger" />
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-rose-400" />
           Vacant
         </Badge>
       );
     case "SETTLED":
       return (
         <Badge variant="primary">
-          <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400" />
           Settled
         </Badge>
       );
@@ -77,37 +90,33 @@ export function CycleStatusBadge({ status }: { status: CycleStatus }) {
   }
 }
 
-/**
- * Round Status Badge handling all states:
- * FORMING, ACTIVE, COMPLETED, CANCELLED
- */
 export function RoundStatusBadge({ status }: { status: RoundStatus }) {
   switch (status) {
     case "ACTIVE":
       return (
         <Badge variant="positive">
-          <span className="w-1.5 h-1.5 rounded-full bg-positive" />
+          <span className="w-1.5 h-1.5 rounded-full bg-green-500 dark:bg-green-400" />
           Active
         </Badge>
       );
     case "FORMING":
       return (
         <Badge variant="accent">
-          <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400" />
           Forming
         </Badge>
       );
     case "COMPLETED":
       return (
         <Badge variant="primary">
-          <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400" />
           Completed
         </Badge>
       );
     case "CANCELLED":
       return (
         <Badge variant="danger">
-          <span className="w-1.5 h-1.5 rounded-full bg-danger" />
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-rose-400" />
           Cancelled
         </Badge>
       );

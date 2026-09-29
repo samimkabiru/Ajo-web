@@ -152,7 +152,7 @@ export function SwapSheet({
               {incomingSwaps.map((swap) => (
                 <div
                   key={swap.id}
-                  className="p-3.5 rounded-[10px] border border-line bg-surface flex items-center justify-between"
+                  className="p-3.5 rounded-[10px] border border-line dark:border-white/10 bg-surface dark:bg-[#171B22] flex items-center justify-between"
                 >
                   <div>
                     <span className="font-semibold text-sm text-ink block">
@@ -199,7 +199,7 @@ export function SwapSheet({
               {outgoingSwaps.map((swap) => (
                 <div
                   key={swap.id}
-                  className="p-3.5 rounded-[10px] border border-line bg-surface flex items-center justify-between"
+                  className="p-3.5 rounded-[10px] border border-line dark:border-white/10 bg-surface dark:bg-[#171B22] flex items-center justify-between"
                 >
                   <div>
                     <span className="font-semibold text-sm text-ink block">
@@ -226,7 +226,7 @@ export function SwapSheet({
         )}
 
         {/* Propose New Swap */}
-        <div className="space-y-3 pt-2 border-t border-line/60">
+        <div className="space-y-3 pt-2 border-t border-line/60 dark:border-white/10">
           <h4 className="font-heading font-bold text-xs uppercase tracking-wider text-muted">
             Request Swap with a Member
           </h4>

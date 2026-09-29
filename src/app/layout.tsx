@@ -1,19 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, Inter } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/providers/query-provider";
 import { AuthProvider } from "@/context/auth-context";
 import { ColdStartProvider } from "@/components/common/cold-start-provider";
+import { ThemeProvider } from "@/providers/theme-provider";
 
-const headingFont = Plus_Jakarta_Sans({
+const geistSans = Geist({
   subsets: ["latin"],
-  variable: "--font-heading",
+  variable: "--font-sans",
   display: "swap",
 });
 
-const bodyFont = Inter({
+const geistMono = Geist_Mono({
   subsets: ["latin"],
-  variable: "--font-body",
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -37,20 +38,27 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${headingFont.variable} ${bodyFont.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} font-sans h-full antialiased`}
       suppressHydrationWarning
     >
       <body
-        className="min-h-full flex flex-col bg-canvas text-ink font-body"
+        className="min-h-full flex flex-col bg-canvas text-ink font-sans"
         suppressHydrationWarning
       >
-        <QueryProvider>
-          <AuthProvider>
-            <ColdStartProvider>
-              {children}
-            </ColdStartProvider>
-          </AuthProvider>
-        </QueryProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <QueryProvider>
+            <AuthProvider>
+              <ColdStartProvider>
+                {children}
+              </ColdStartProvider>
+            </AuthProvider>
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

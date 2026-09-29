@@ -77,23 +77,19 @@ export function CreateGroupModal({
           </div>
         )}
 
-        <div className="space-y-1.5">
-          <label className="text-xs font-bold text-ink">
-            Circle Name <span className="text-danger">*</span>
-          </label>
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Lagos Founders Ajo, Family Vault"
-            required
-            maxLength={60}
-            autoFocus
-          />
-        </div>
+        <Input
+          label="Circle Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="e.g. Lagos Founders Ajo, Family Vault"
+          required
+          maxLength={60}
+          autoFocus
+        />
 
-        <div className="space-y-1.5">
-          <label className="text-xs font-bold text-ink">
-            Description <span className="text-muted font-normal">(Optional)</span>
+        <div className="space-y-1">
+          <label className="block text-xs font-semibold text-ink/85 dark:text-slate-200 tracking-tight select-none mb-1.5">
+            Description <span className="text-[11px] font-normal text-muted ml-1">(Optional)</span>
           </label>
           <textarea
             value={description}
@@ -101,18 +97,18 @@ export function CreateGroupModal({
             placeholder="Briefly state the goal, rules, or intended monthly payout..."
             rows={3}
             maxLength={250}
-            className="w-full rounded-[9px] border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-muted/70 transition-all duration-120 hover:border-ink/20 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+            className="w-full rounded-[10px] border border-[#E5E7EB] bg-surface dark:bg-[#0C0F14] dark:border-white/[0.09] dark:shadow-[inset_0_2px_4px_rgba(0,0,0,0.45)] px-3 py-2.5 text-sm text-ink dark:text-[#EDF0F4] placeholder:text-muted/45 dark:placeholder:text-white/25 transition-all duration-150 hover:border-[#9CA3AF] dark:hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/25 focus:border-indigo-500 dark:focus:ring-indigo-400/20 dark:focus:border-indigo-400/70 resize-none shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
           />
         </div>
 
-        <div className="p-3 rounded-[10px] bg-canvas border border-line/60 flex items-start gap-2.5 text-xs text-muted">
+        <div className="p-3 rounded-[10px] bg-canvas dark:bg-white/[0.04] border border-line/60 dark:border-white/10 flex items-start gap-2.5 text-xs text-muted">
           <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
           <p className="leading-relaxed">
             As the creator, you will automatically be designated the <strong className="text-ink">Circle Admin</strong> with full permissions to invite members and launch savings rounds.
           </p>
         </div>
 
-        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-line/60">
+        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-line/60 dark:border-white/10">
           <Button
             type="button"
             variant="ghost"

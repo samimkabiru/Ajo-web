@@ -8,7 +8,10 @@ export function Skeleton({
   return (
     <div
       className={cn(
-        "animate-pulse rounded-[8px] bg-line/60 select-none",
+        // Light: soft warm grey shimmer
+        // Dark: lifted slate shimmer matching the 3-tier elevation
+        "animate-pulse rounded-[8px] select-none",
+        "bg-[#E7E5E4] dark:bg-[#252D3E]",
         className
       )}
       {...props}
@@ -18,7 +21,7 @@ export function Skeleton({
 
 export function CardSkeleton() {
   return (
-    <div className="rounded-[12px] border border-line bg-surface p-5 space-y-4">
+    <div className="rounded-[12px] border border-[#E7E5E4] dark:border-white/8 bg-surface dark:bg-[#171B22] p-5 space-y-4 shadow-card">
       <div className="flex justify-between items-start">
         <Skeleton className="h-5 w-1/3" />
         <Skeleton className="h-5 w-16 rounded-full" />

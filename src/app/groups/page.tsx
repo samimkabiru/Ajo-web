@@ -79,7 +79,7 @@ export default function GroupsPage() {
                     <div>
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-tint to-primary/10 border border-primary/20 text-primary flex items-center justify-center font-heading font-bold text-base shadow-xs">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-tint to-primary/10 border border-primary/20 text-primary dark:from-indigo-500/20 dark:to-indigo-500/5 dark:border-indigo-500/30 dark:text-indigo-300 dark:shadow-[0_0_10px_rgba(129,140,248,0.15)] flex items-center justify-center font-heading font-bold text-base shadow-xs">
                             {group.name.charAt(0).toUpperCase()}
                           </div>
                           <div>
@@ -107,7 +107,7 @@ export default function GroupsPage() {
                       )}
                     </div>
 
-                    <div className="flex items-center justify-between pt-3 mt-3 border-t border-line/60 text-xs text-muted">
+                    <div className="flex items-center justify-between pt-3 mt-3 border-t border-line/60 dark:border-white/10 text-xs text-muted">
                       <span className="font-medium text-[11px]">Circle Management</span>
                       <span className="flex items-center gap-1 font-semibold text-primary group-hover:translate-x-0.5 transition-transform">
                         View details <ArrowRight className="w-3.5 h-3.5" />
@@ -119,15 +119,15 @@ export default function GroupsPage() {
             </div>
           ) : (
             /* List View */
-            <div className="bg-surface rounded-[14px] border border-line divide-y divide-line/60 overflow-hidden shadow-subtle">
+            <div className="bg-surface dark:bg-[#171B22] rounded-[14px] border border-line dark:border-white/[0.08] divide-y divide-line/60 dark:divide-white/[0.05] overflow-hidden shadow-subtle">
               {groups.map((group) => (
                 <Link
                   key={group.id}
                   href={`/groups/${group.id}`}
-                  className="flex items-center justify-between p-4 hover:bg-canvas/60 transition-colors group"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 hover:bg-canvas/60 dark:hover:bg-white/[0.03] transition-colors group gap-3"
                 >
-                  <div className="flex items-center gap-3.5 min-w-0 pr-4">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-tint to-primary/10 border border-primary/20 text-primary flex items-center justify-center font-heading font-bold text-base shrink-0 shadow-xs">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-tint to-primary/10 border border-primary/20 text-primary dark:from-indigo-500/20 dark:to-indigo-500/5 dark:border-indigo-500/30 dark:text-indigo-300 dark:shadow-[0_0_10px_rgba(129,140,248,0.15)] flex items-center justify-center font-heading font-bold text-base shrink-0 shadow-xs">
                       {group.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
@@ -141,22 +141,22 @@ export default function GroupsPage() {
                           <Badge variant="neutral" className="text-[10px] py-0">Idle</Badge>
                         )}
                       </div>
-                      {group.description ? (
-                        <p className="text-xs text-muted truncate max-w-md">
-                          {group.description}
-                        </p>
-                      ) : (
-                        <p className="text-xs text-muted">No description set</p>
-                      )}
+                      <p className="text-xs text-muted truncate max-w-md mt-0.5">
+                        {group.description || "Active rotational savings circle"}
+                      </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 shrink-0">
-                    <span className="text-xs text-muted flex items-center gap-1 hidden sm:flex">
-                      <Users className="w-3.5 h-3.5" />
-                      {group.memberCount ?? 1} members
+                  <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 pl-13 sm:pl-0">
+                    <span className="text-xs text-muted flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5 text-muted" />
+                      <span className="tabular-nums font-medium text-ink">{group.memberCount ?? 1}</span>
+                      <span>{(group.memberCount ?? 1) === 1 ? "member" : "members"}</span>
                     </span>
-                    <ArrowRight className="w-4 h-4 text-muted group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                    <span className="text-xs font-semibold text-primary flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                      <span>View</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </span>
                   </div>
                 </Link>
               ))}

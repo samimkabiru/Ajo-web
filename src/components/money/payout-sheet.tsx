@@ -101,7 +101,7 @@ export function PayoutSheet({
     >
       <div className="space-y-5 pt-1">
         {isSuccess ? (
-          <div className="p-6 text-center space-y-3 bg-positive/10 rounded-[12px] border border-positive/20">
+          <div className="p-6 text-center space-y-3 bg-positive/10 dark:bg-emerald-500/15 rounded-[12px] border border-positive/20 dark:border-emerald-500/40 dark:shadow-[0_0_24px_rgba(16,185,129,0.18)]">
             <CheckCircle2 className="w-12 h-12 text-positive mx-auto" />
             <h4 className="font-heading text-lg font-bold text-ink">Payout Disbursed</h4>
             <p className="text-xs text-muted">
@@ -118,7 +118,7 @@ export function PayoutSheet({
             )}
 
             {/* Expected vs Actual Breakdown */}
-            <div className="bg-canvas border border-line rounded-[12px] p-5 space-y-3">
+            <div className="bg-canvas dark:bg-[#0C0F14] border border-line dark:border-white/10 dark:shadow-[inset_0_2px_4px_rgba(0,0,0,0.45)] rounded-[12px] p-5 space-y-3">
               <div className="flex justify-between items-center text-xs text-muted">
                 <span>Expected Full Pot</span>
                 <span className="font-semibold text-ink tabular-nums">
@@ -127,7 +127,7 @@ export function PayoutSheet({
               </div>
 
               {shortfallKobo > 0 && (
-                <div className="flex justify-between items-center text-xs text-warning bg-warning/10 p-2.5 rounded-lg border border-warning/20">
+                <div className="flex justify-between items-center text-xs text-warning bg-warning/10 dark:bg-amber-500/15 p-2.5 rounded-lg border border-warning/20 dark:border-amber-500/30">
                   <div className="flex items-center gap-1.5">
                     <Info className="w-3.5 h-3.5 shrink-0" />
                     <span>Shortfall (unpaid member contributions)</span>
@@ -137,7 +137,7 @@ export function PayoutSheet({
               )}
 
               {arrearsWithheldKobo > 0 && (
-                <div className="flex justify-between items-center text-xs text-danger bg-danger/10 p-2.5 rounded-lg border border-danger/20">
+                <div className="flex justify-between items-center text-xs text-danger bg-danger/10 dark:bg-rose-500/15 p-2.5 rounded-lg border border-danger/20 dark:border-rose-500/30">
                   <div className="flex items-center gap-1.5">
                     <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                     <span>Held back for missed earlier months</span>
@@ -146,7 +146,7 @@ export function PayoutSheet({
                 </div>
               )}
 
-              <div className="pt-2 border-t border-line/60 flex justify-between items-center">
+              <div className="pt-2 border-t border-line/60 dark:border-white/10 flex justify-between items-center">
                 <span className="font-heading font-bold text-sm text-ink">Take-Home Payout</span>
                 <span className="font-heading font-extrabold text-2xl text-positive tabular-nums">
                   {formatKobo(actualAmountKobo)}
@@ -154,12 +154,12 @@ export function PayoutSheet({
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-xs text-muted bg-canvas p-2.5 rounded-lg border border-line">
+            <div className="flex items-center gap-2 text-xs text-muted bg-canvas dark:bg-[#0C0F14] p-2.5 rounded-lg border border-line dark:border-white/10">
               <ShieldCheck className="w-4 h-4 text-positive shrink-0" />
               <span>Idempotency-protected: Tap once safely. Duplicate payouts are blocked.</span>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-line/60">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-line/60 dark:border-white/10">
               <Button type="button" variant="ghost" onClick={onClose} disabled={isLoading}>
                 Cancel
               </Button>

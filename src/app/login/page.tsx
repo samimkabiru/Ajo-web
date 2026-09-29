@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { getErrorMessage } from "@/lib/api/errors";
-import { Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, AlertCircle, Lock, ArrowRight, ShieldCheck } from "lucide-react";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -26,15 +26,12 @@ export default function LoginPage() {
       setErrorMsg("Please enter both your phone number and password.");
       return;
     }
-
     setIsLoading(true);
     setErrorMsg(null);
-
     try {
       await login(phone.trim(), password);
       router.push("/dashboard");
     } catch (err) {
-      // Backend returns deliberate unified message for unknown phone or bad password
       setErrorMsg(getErrorMessage(err));
     } finally {
       setIsLoading(false);
@@ -42,43 +39,102 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-8 bg-canvas">
-      <div className="w-full max-w-md">
-        {/* Brand header */}
-        <div className="text-center mb-6">
-          <Link href="/" className="inline-flex items-center gap-2 mb-3 touch-press">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white font-heading font-black text-xl shadow-sm">
-              A
-            </div>
-            <span className="font-heading font-bold text-2xl tracking-tight text-ink">
-              Ajo
-            </span>
-          </Link>
-          <h1 className="font-heading text-2xl font-bold text-ink">Welcome back</h1>
-          <p className="text-sm text-muted mt-1">Log in to view your circles and savings pot</p>
+    <div className="min-h-screen flex bg-canvas dark:bg-[#0F1117]">
+      {/* ── Left decorative panel (hidden on mobile) ── */}
+      <div className="hidden lg:flex lg:w-[42%] xl:w-[46%] relative flex-col justify-between p-10 bg-gradient-to-br from-indigo-600 via-indigo-700 to-[#312E81] overflow-hidden">
+        {/* Grid pattern overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.07]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
+          }}
+        />
+        {/* Ambient orbs */}
+        <div className="absolute -top-32 -left-32 w-80 h-80 rounded-full bg-indigo-400/20 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-20 right-10 w-60 h-60 rounded-full bg-amber-400/14 blur-3xl pointer-events-none" />
+
+        {/* Brand */}
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur border border-white/25 flex items-center justify-center font-heading font-black text-white text-base">
+            A
+          </div>
+          <span className="font-heading font-extrabold text-white text-xl tracking-tight">Ajo</span>
         </div>
 
-        <Card className="p-6 sm:p-8">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Hero copy */}
+        <div className="relative z-10 space-y-5">
+          <div>
+            <p className="text-indigo-200 text-xs font-bold uppercase tracking-widest mb-3">
+              Rotational Savings Platform
+            </p>
+            <h2 className="font-heading font-extrabold text-white text-3xl xl:text-4xl leading-tight">
+              Save together,<br />collect in turns.
+            </h2>
+            <p className="mt-3 text-indigo-200 text-sm leading-relaxed max-w-xs">
+              The digital home for your ajo, esusu, and adashe circles — transparent, zero-interest, and fully tracked.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 text-indigo-200 text-xs">
+            <ShieldCheck className="w-4 h-4 text-indigo-300 shrink-0" />
+            <span>Idempotency-protected. No double payments, ever.</span>
+          </div>
+        </div>
+
+        {/* Bottom tagline */}
+        <p className="relative z-10 text-indigo-300/60 text-[11px]">
+          © {new Date().getFullYear()} Ajo — Designed for Nigeria.
+        </p>
+      </div>
+
+      {/* ── Right: Form panel ── */}
+      <div className="flex-1 flex flex-col justify-center items-center px-6 sm:px-10 py-12">
+        {/* Mobile brand */}
+        <div className="lg:hidden mb-8 text-center">
+          <Link href="/" className="inline-flex items-center gap-2.5 touch-press">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white font-heading font-black text-xl shadow-md">
+              A
+            </div>
+            <span className="font-heading font-extrabold text-2xl tracking-tight text-ink">Ajo</span>
+          </Link>
+        </div>
+
+        <div className="w-full max-w-[360px]">
+          {/* Heading */}
+          <div className="mb-6">
+            <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">
+              Welcome back
+            </h1>
+            <p className="text-sm text-muted mt-1.5 leading-relaxed">
+              Log in to view your circles and savings pot.
+            </p>
+          </div>
+
+          {/* Form card */}
+          <div className="bg-surface dark:bg-[#171B22] rounded-[16px] border border-[#E5E7EB] dark:border-white/[0.08] shadow-card p-6 sm:p-7 space-y-4">
+            {/* Error banner */}
             {errorMsg && (
-              <div className="p-3.5 rounded-[10px] bg-danger/10 border border-danger/20 flex items-start gap-2.5 text-xs sm:text-sm text-danger font-medium leading-snug animate-shake">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2.5 p-3.5 rounded-[10px] bg-red-50 dark:bg-rose-500/10 border border-red-200 dark:border-rose-400/28 text-xs text-red-700 dark:text-rose-300 font-medium leading-snug">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-500 dark:text-rose-400" />
                 <span>{errorMsg}</span>
               </div>
             )}
 
-            <Input
-              id="phone"
-              name="phone"
-              label="Phone Number"
-              placeholder="e.g. 08012345678 or +234 801..."
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              autoComplete="tel"
-              required
-            />
+            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+              {/* Phone */}
+              <PhoneInput
+                id="phone"
+                name="phone"
+                label="Phone Number"
+                value={phone}
+                onChange={setPhone}
+                autoComplete="tel"
+                required
+              />
 
-            <div className="relative">
+              {/* Password */}
               <Input
                 id="password"
                 name="password"
@@ -89,45 +145,52 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
                 required
+                leadingIcon={<Lock className="w-4 h-4" />}
+                trailingSlot={
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="p-1 text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-200 transition-colors rounded-md"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                }
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-8 text-muted hover:text-ink transition-colors p-1"
-                aria-label={showPassword ? "Hide password" : "Show password"}
+
+              {/* Forgot password */}
+              <div className="flex justify-end -mt-1">
+                <Link
+                  href="/forgot-password"
+                  className="text-xs font-semibold text-primary hover:text-primary-dark dark:hover:text-indigo-300 transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+
+              {/* Submit */}
+              <Button
+                type="submit"
+                variant="primary"
+                fullWidth
+                size="lg"
+                isLoading={isLoading}
+                loadingText="Signing in…"
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
+                Log in to Ajo
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </form>
+          </div>
 
-            <div className="flex justify-end pt-1">
-              <Link
-                href="/forgot-password"
-                className="text-xs font-semibold text-primary hover:underline touch-press"
-              >
-                Forgot password?
-              </Link>
-            </div>
-
-            <Button
-              type="submit"
-              variant="primary"
-              fullWidth
-              isLoading={isLoading}
-              loadingText="Signing in..."
-              className="mt-2"
-            >
-              Log in to Ajo
-            </Button>
-          </form>
-
-          <div className="mt-6 pt-5 border-t border-line text-center text-xs text-muted">
-            Don&apos;t have an account yet?{" "}
-            <Link href="/register" className="font-semibold text-primary hover:underline">
+          {/* Sign-up prompt */}
+          <p className="mt-6 text-center text-xs text-muted">
+            Don&apos;t have an account?{" "}
+            <Link href="/register" className="font-semibold text-primary hover:text-primary-dark dark:hover:text-indigo-300 transition-colors">
               Create an account
             </Link>
-          </div>
-        </Card>
+          </p>
+        </div>
       </div>
     </div>
   );

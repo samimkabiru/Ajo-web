@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { ArrowRight, ShieldCheck, Users, CalendarCheck, Coins, RefreshCw } from "lucide-react";
 import { NavHeader } from "@/components/common/nav-header";
+import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -41,26 +42,24 @@ export default function HomePage() {
         </p>
 
         {/* CTAs */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full max-w-xs sm:max-w-md justify-center mb-16">
-          <Link
-            href="/register"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-[10px] bg-primary text-white font-semibold hover:bg-primary-dark shadow-sm touch-press text-sm"
-          >
-            <span>Start an Ajo Circle</span>
-            <ArrowRight className="w-4 h-4" />
+        <div className="flex flex-col sm:flex-row items-center gap-3.5 w-full max-w-xs sm:max-w-md justify-center mb-16">
+          <Link href="/register" className="w-full sm:w-auto">
+            <Button variant="primary" size="lg" className="w-full sm:w-auto gap-2">
+              <span>Start an Ajo Circle</span>
+              <ArrowRight className="w-4 h-4" />
+            </Button>
           </Link>
-          <Link
-            href="/login"
-            className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 rounded-[10px] bg-surface border border-line text-ink font-semibold hover:bg-canvas shadow-xs touch-press text-sm"
-          >
-            Log into circle
+          <Link href="/login" className="w-full sm:w-auto">
+            <Button variant="outline" size="lg" className="w-full sm:w-auto">
+              Log into circle
+            </Button>
           </Link>
         </div>
 
         {/* Feature Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full text-left">
-          <div className="bg-surface border border-line rounded-[12px] p-5 shadow-subtle">
-            <div className="w-10 h-10 rounded-lg bg-primary-tint text-primary flex items-center justify-center mb-3">
+          <div className="bg-surface dark:bg-[#171B22] border border-line dark:border-white/[0.08] rounded-[14px] p-5 shadow-subtle dark:shadow-card">
+            <div className="w-10 h-10 rounded-xl bg-primary-tint text-primary dark:bg-indigo-500/15 dark:text-indigo-300 flex items-center justify-center mb-3">
               <Users className="w-5 h-5" />
             </div>
             <h2 className="font-heading font-semibold text-ink text-base mb-1">
@@ -71,8 +70,8 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="bg-surface border border-line rounded-[12px] p-5 shadow-subtle">
-            <div className="w-10 h-10 rounded-lg bg-accent-tint text-accent flex items-center justify-center mb-3">
+          <div className="bg-surface dark:bg-[#171B22] border border-line dark:border-white/[0.08] rounded-[14px] p-5 shadow-subtle dark:shadow-card">
+            <div className="w-10 h-10 rounded-xl bg-accent-tint text-accent dark:bg-amber-400/15 dark:text-amber-300 flex items-center justify-center mb-3">
               <CalendarCheck className="w-5 h-5" />
             </div>
             <h2 className="font-heading font-semibold text-ink text-base mb-1">
@@ -83,8 +82,8 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="bg-surface border border-line rounded-[12px] p-5 shadow-subtle">
-            <div className="w-10 h-10 rounded-lg bg-positive/10 text-positive flex items-center justify-center mb-3">
+          <div className="bg-surface dark:bg-[#171B22] border border-line dark:border-white/[0.08] rounded-[14px] p-5 shadow-subtle dark:shadow-card">
+            <div className="w-10 h-10 rounded-xl bg-positive/10 text-positive dark:bg-green-400/15 dark:text-green-300 flex items-center justify-center mb-3">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <h2 className="font-heading font-semibold text-ink text-base mb-1">

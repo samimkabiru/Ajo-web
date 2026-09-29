@@ -26,6 +26,7 @@ import { formatKobo, parseNairaToKobo } from "@/lib/money";
 import { getErrorMessage } from "@/lib/api/errors";
 import { DatePicker } from "@/components/ui/date-picker";
 import { ViewToggle, ViewMode } from "@/components/common/view-toggle";
+import { cn } from "@/lib/utils";
 import {
   Users,
   UserPlus,
@@ -229,37 +230,23 @@ export default function GroupDetailPage() {
               )}
             </div>
 
-            {/* Admin actions */}
+            {/* Action buttons */}
             <div className="flex items-center gap-2 self-start sm:self-auto">
               {isAdmin ? (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setInviteError(null);
-                      setInviteSuccess(null);
-                      setIsInviteModalOpen(true);
-                    }}
-                  >
-                    <UserPlus className="w-4 h-4 mr-1.5" />
-                    Invite
-                  </Button>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => {
-                      setRoundError(null);
-                      setIsCreateRoundModalOpen(true);
-                    }}
-                  >
-                    <PlusCircle className="w-4 h-4 mr-1.5" />
-                    New Round
-                  </Button>
-                </>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    setRoundError(null);
+                    setIsCreateRoundModalOpen(true);
+                  }}
+                >
+                  <PlusCircle className="w-4 h-4 mr-1.5" />
+                  New Round
+                </Button>
               ) : (
                 <Button
-                  variant="subtleDanger"
+                  variant="ghost"
                   size="sm"
                   onClick={() => {
                     if (confirm("Are you sure you want to leave this circle?")) {
@@ -268,6 +255,7 @@ export default function GroupDetailPage() {
                   }}
                   isLoading={leaveGroupMutation.isPending}
                   loadingText="Leaving..."
+                  className="text-muted hover:text-danger hover:bg-danger/8 text-xs font-medium transition-colors"
                 >
                   <LogOut className="w-4 h-4 mr-1.5" />
                   Leave Circle
@@ -275,11 +263,53 @@ export default function GroupDetailPage() {
               )}
             </div>
           </div>
+
+          {/* Executive Circle Metrics Summary */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 rounded-[14px] bg-surface dark:bg-[#171B22] border border-line/70 dark:border-white/[0.08] shadow-2xs mt-4">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted block mb-0.5">
+                Circle Members
+              </span>
+              <div className="flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-primary" />
+                <strong className="text-sm sm:text-base font-bold text-ink tabular-nums">
+                  {group.members?.length ?? 1}
+                </strong>
+              </div>
+            </div>
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted block mb-0.5">
+                Savings Rounds
+              </span>
+              <div className="flex items-center gap-1.5">
+                <Coins className="w-3.5 h-3.5 text-primary" />
+                <strong className="text-sm sm:text-base font-bold text-ink tabular-nums">
+                  {rounds?.length ?? 0}
+                </strong>
+              </div>
+            </div>
+            <div className="col-span-2 sm:col-span-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted block mb-0.5">
+                Circle Status
+              </span>
+              <div className="flex items-center gap-1.5">
+                <span
+                  className={cn(
+                    "w-2 h-2 rounded-full",
+                    rounds?.some((r) => r.status === "ACTIVE") ? "bg-positive" : "bg-warning"
+                  )}
+                />
+                <strong className="text-xs sm:text-sm font-bold text-ink">
+                  {rounds?.some((r) => r.status === "ACTIVE") ? "Active Rounds" : "Rounds Forming"}
+                </strong>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Tab Navigation with Radix Animated Sliding Pills */}
-        <Tabs defaultValue="rounds" className="w-full space-y-5">
-          <div className="border-b border-line pb-3">
+        <Tabs defaultValue="rounds" layoutId="circleDetailsTabs" className="w-full space-y-5">
+          <div className="border-b border-line dark:border-white/[0.08] pb-3">
             <TabsList>
               <TabsTrigger value="rounds">
                 <Coins className="w-4 h-4" />
@@ -332,7 +362,7 @@ export default function GroupDetailPage() {
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between pt-3 border-t border-line/60 text-xs text-muted">
+                          <div className="flex items-center justify-between pt-3 border-t border-line/60 dark:border-white/10 text-xs text-muted">
                             <span>
                               {round.firstPayoutDate ? (
                                 <>First payout: {round.firstPayoutDate}</>
@@ -349,15 +379,15 @@ export default function GroupDetailPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="bg-surface rounded-[14px] border border-line divide-y divide-line/60 overflow-hidden shadow-subtle">
+                  <div className="bg-surface dark:bg-[#171B22] rounded-[14px] border border-line dark:border-white/[0.08] divide-y divide-line/60 dark:divide-white/[0.05] overflow-hidden shadow-subtle">
                     {rounds.map((round, idx) => (
                       <Link
                         key={round.id}
                         href={`/rounds/${round.id}`}
-                        className="flex items-center justify-between p-4 hover:bg-canvas/60 transition-colors group"
+                        className="flex flex-col sm:flex-row sm:items-center justify-between p-4 hover:bg-canvas/60 dark:hover:bg-white/[0.03] transition-colors group gap-3"
                       >
-                        <div className="flex items-center gap-3.5 min-w-0 pr-4">
-                          <div className="w-10 h-10 rounded-xl bg-primary-tint text-primary flex items-center justify-center font-heading font-bold text-sm shrink-0 shadow-xs">
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <div className="w-10 h-10 rounded-xl bg-primary-tint text-primary dark:bg-indigo-500/20 dark:text-indigo-300 dark:shadow-[0_0_10px_rgba(129,140,248,0.15)] flex items-center justify-center font-heading font-bold text-sm shrink-0 shadow-xs">
                             #{idx + 1}
                           </div>
                           <div className="min-w-0">
@@ -374,8 +404,8 @@ export default function GroupDetailPage() {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 font-semibold text-xs text-primary shrink-0">
-                          <span>Enter</span>
+                        <div className="flex items-center justify-between sm:justify-end gap-3 font-semibold text-xs text-primary shrink-0 pl-13 sm:pl-0">
+                          <span>Enter round</span>
                           <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                         </div>
                       </Link>
@@ -384,8 +414,8 @@ export default function GroupDetailPage() {
                 )}
               </div>
             ) : (
-              <Card className="p-8 text-center border-dashed border-2">
-                <div className="w-12 h-12 rounded-xl bg-primary-tint text-primary flex items-center justify-center mx-auto mb-3">
+              <Card className="p-8 text-center border-dashed border-2 dark:border-white/15 dark:bg-[#14171B]">
+                <div className="w-12 h-12 rounded-xl bg-primary-tint text-primary dark:bg-indigo-500/20 dark:text-indigo-300 dark:shadow-[0_0_12px_rgba(129,140,248,0.18)] flex items-center justify-center mx-auto mb-3">
                   <Coins className="w-6 h-6" />
                 </div>
                 <h3 className="font-heading text-lg font-bold text-ink mb-1">
@@ -445,7 +475,7 @@ export default function GroupDetailPage() {
                 return (
                   <Card key={memberId} className="p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary-tint text-primary flex items-center justify-center font-bold text-sm">
+                      <div className="w-10 h-10 rounded-full bg-primary-tint text-primary dark:bg-indigo-500/20 dark:text-indigo-300 dark:shadow-[0_0_10px_rgba(129,140,248,0.15)] flex items-center justify-center font-bold text-sm">
                         {member.user.fullName.charAt(0).toUpperCase()}
                       </div>
                       <div>
@@ -454,7 +484,7 @@ export default function GroupDetailPage() {
                             {member.user.fullName}
                           </span>
                           {memberId === user?.id && (
-                            <span className="text-[10px] bg-line/60 text-muted px-1.5 py-0.5 rounded font-medium">
+                            <span className="text-[10px] bg-line/60 dark:bg-white/10 text-muted px-1.5 py-0.5 rounded font-medium">
                               You
                             </span>
                           )}
@@ -523,7 +553,7 @@ export default function GroupDetailPage() {
                   {group.invites.map((invite) => (
                     <Card key={invite.id} className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-canvas border border-line text-muted flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-canvas dark:bg-[#0C0F14] border border-line dark:border-white/12 text-muted flex items-center justify-center">
                           <Clock className="w-5 h-5" />
                         </div>
                         <div>

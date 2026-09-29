@@ -1,156 +1,266 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Text Selection — indigo brand colour ───────────────────────────── */
+::selection {
+  background-color: rgba(99, 102, 241, 0.18);
+}
+.dark ::selection,
+.dark::selection {
+  background-color: rgba(129, 140, 248, 0.22);
+}
+
+/* ════════════════════════════════════════════════
+   LIGHT MODE TOKENS
+════════════════════════════════════════════════ */
 :root {
-  --primary: #0E4F3C;
-  --primary-dark: #093A2C;
-  --primary-tint: #E8F2EE;
+  /* Brand — indigo */
+  --primary:       #4F46E5;   /* indigo-600 */
+  --primary-dark:  #4338CA;   /* indigo-700 */
+  --primary-tint:  #EEF2FF;   /* indigo-50  */
 
-  --accent: #D98A2B;
-  --accent-tint: #FDF3E6;
+  /* Accent — warm amber (pairs beautifully with indigo) */
+  --accent:        #D97706;   /* amber-600  */
+  --accent-tint:   #FFFBEB;   /* amber-50   */
 
-  --positive: #1B7F5A;
-  --warning: #C97A1F;
-  --danger: #B3261E;
+  /* Status */
+  --positive:      #16A34A;   /* green-600  */
+  --positive-tint: #F0FDF4;   /* green-50   */
+  --warning:       #D97706;   /* amber-600  */
+  --warning-tint:  #FFFBEB;   /* amber-50   */
+  --danger:        #DC2626;   /* red-600    */
+  --danger-tint:   #FEF2F2;   /* red-50     */
 
-  --ink: #1C1917;
-  --muted: #78716C;
-  --line: #E7E5E4;
+  /* Typography */
+  --ink:     #111827;   /* gray-900  */
+  --muted:   #6B7280;   /* gray-500  */
+
+  /* Structure */
+  --line:    #E5E7EB;   /* gray-200  */
   --surface: #FFFFFF;
-  --canvas: #FAFAF9;
+  --canvas:  #F9FAFB;   /* gray-50   */
+  --raised:  #FFFFFF;
 
+  /* Radii */
   --radius-card: 14px;
-  --radius-btn: 10px;
+  --radius-btn:  10px;
   --radius-pill: 9999px;
 
-  /* Elevated dual-layer fintech shadows */
-  --shadow-subtle: 0 1px 2px rgba(28, 25, 23, 0.04), 0 4px 12px rgba(28, 25, 23, 0.02);
-  --shadow-card: 0 1px 3px rgba(28, 25, 23, 0.03), 0 8px 24px -4px rgba(28, 25, 23, 0.04);
-  --shadow-card-hover: 0 4px 8px rgba(28, 25, 23, 0.04), 0 16px 32px -4px rgba(28, 25, 23, 0.08);
-  --shadow-elevation: 0 8px 20px -3px rgba(28, 25, 23, 0.08), 0 20px 40px -8px rgba(28, 25, 23, 0.12);
-  --shadow-vault: 0 14px 38px -6px rgba(14, 79, 60, 0.28), 0 6px 16px -2px rgba(14, 79, 60, 0.16);
+  /* Shadows — clean, unobtrusive */
+  --shadow-subtle:    0 1px 2px rgba(17,24,39,0.04), 0 4px 12px rgba(17,24,39,0.03);
+  --shadow-card:      0 1px 3px rgba(17,24,39,0.04), 0 6px 20px -4px rgba(17,24,39,0.05);
+  --shadow-card-hover:0 4px 8px rgba(17,24,39,0.05), 0 14px 28px -4px rgba(17,24,39,0.09);
+  --shadow-elevation: 0 8px 20px -3px rgba(17,24,39,0.09), 0 20px 40px -8px rgba(17,24,39,0.13);
+  --shadow-vault:     0 1px 3px rgba(79,70,229,0.08), 0 8px 18px -4px rgba(79,70,229,0.16);
 }
 
+/* ════════════════════════════════════════════════
+   DARK MODE TOKENS
+   3-tier elevation: canvas < surface < raised
+════════════════════════════════════════════════ */
+.dark {
+  /* Brand — indigo glows beautifully on dark */
+  --primary:       #818CF8;   /* indigo-400 */
+  --primary-dark:  #6366F1;   /* indigo-500 */
+  --primary-tint:  rgba(129, 140, 248, 0.14);
+
+  /* Accent */
+  --accent:        #FBBF24;   /* amber-400  */
+  --accent-tint:   rgba(251, 191, 36, 0.14);
+
+  /* Status */
+  --positive:      #4ADE80;   /* green-400  */
+  --positive-tint: rgba(74, 222, 128, 0.13);
+  --warning:       #FBBF24;   /* amber-400  */
+  --warning-tint:  rgba(251, 191, 36, 0.13);
+  --danger:        #F87171;   /* red-400    */
+  --danger-tint:   rgba(248, 113, 113, 0.13);
+
+  /* Typography */
+  --ink:   #EDF0F4;
+  --muted: #7D8A9A;
+
+  /* Structure */
+  --line:    rgba(255,255,255,0.09);
+  --canvas:  #0F1117;
+  --surface: #171B22;
+  --raised:  #1E2330;
+
+  /* Shadows — depth without glare */
+  --shadow-subtle:    0 1px 2px rgba(0,0,0,0.5),  0 4px 12px rgba(0,0,0,0.38);
+  --shadow-card:      inset 0 1px 0 rgba(255,255,255,0.06),
+                      0 1px 3px rgba(0,0,0,0.5),
+                      0 8px 24px -4px rgba(0,0,0,0.48);
+  --shadow-card-hover:inset 0 1px 0 rgba(255,255,255,0.09),
+                      0 0 0 1px rgba(129,140,248,0.20),
+                      0 8px 28px -4px rgba(0,0,0,0.60),
+                      0 0 20px -4px rgba(129,140,248,0.10);
+  --shadow-elevation: 0 8px 24px -4px rgba(0,0,0,0.68),
+                      0 24px 48px -8px rgba(0,0,0,0.78);
+  --shadow-vault:     0 0 32px -6px rgba(129,140,248,0.20),
+                      0 8px 24px -4px rgba(0,0,0,0.62);
+}
+
+/* ════════════════════════════════════════════════
+   TAILWIND THEME REGISTRATION
+════════════════════════════════════════════════ */
 @theme {
-  --color-primary: var(--primary);
-  --color-primary-dark: var(--primary-dark);
-  --color-primary-tint: var(--primary-tint);
+  --color-primary:       var(--primary);
+  --color-primary-dark:  var(--primary-dark);
+  --color-primary-tint:  var(--primary-tint);
 
-  --color-accent: var(--accent);
-  --color-accent-tint: var(--accent-tint);
+  --color-accent:        var(--accent);
+  --color-accent-tint:   var(--accent-tint);
 
-  --color-positive: var(--positive);
-  --color-warning: var(--warning);
-  --color-danger: var(--danger);
+  --color-positive:      var(--positive);
+  --color-positive-tint: var(--positive-tint);
+  --color-warning:       var(--warning);
+  --color-warning-tint:  var(--warning-tint);
+  --color-danger:        var(--danger);
+  --color-danger-tint:   var(--danger-tint);
 
-  --color-ink: var(--ink);
-  --color-muted: var(--muted);
-  --color-line: var(--line);
+  --color-ink:     var(--ink);
+  --color-muted:   var(--muted);
+  --color-line:    var(--line);
   --color-surface: var(--surface);
-  --color-canvas: var(--canvas);
+  --color-canvas:  var(--canvas);
+  --color-raised:  var(--raised);
 
-  --font-heading: var(--font-heading), system-ui, sans-serif;
-  --font-body: var(--font-body), system-ui, sans-serif;
+  --font-heading: var(--font-sans), system-ui, -apple-system, sans-serif;
+  --font-body:    var(--font-sans), system-ui, -apple-system, sans-serif;
+  --font-mono:    var(--font-mono), monospace;
 }
 
+/* ════════════════════════════════════════════════
+   BASE RESETS
+════════════════════════════════════════════════ */
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
 }
 
+html { scrollbar-gutter: stable; }
+
 body {
+  scrollbar-gutter: stable;
   background-color: var(--canvas);
   color: var(--ink);
   font-family: var(--font-body);
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  font-feature-settings: "cv02","cv03","cv04","cv11";
   min-height: 100vh;
   text-rendering: optimizeLegibility;
 }
 
-h1, h2, h3, h4, h5, h6, .font-heading {
+h1,h2,h3,h4,h5,h6,.font-heading {
   font-family: var(--font-heading);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
 }
 
-.tabular-nums {
-  font-variant-numeric: tabular-nums;
-}
+.tabular-nums { font-variant-numeric: tabular-nums; }
 
-/* Fintech card highlights */
+/* ════════════════════════════════════════════════
+   FINTECH CARD SYSTEM
+════════════════════════════════════════════════ */
 .fintech-card {
   background-color: var(--surface);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-card);
   border-radius: var(--radius-card);
-  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1), border-color 180ms ease;
+  transition:
+    transform 180ms cubic-bezier(0.16,1,0.3,1),
+    box-shadow 180ms cubic-bezier(0.16,1,0.3,1),
+    border-color 180ms ease;
+}
+
+.dark .fintech-card {
+  border-color: rgba(255,255,255,0.08);
+  box-shadow: var(--shadow-card);
 }
 
 .fintech-card-interactive:hover {
   transform: translateY(-1.5px);
   box-shadow: var(--shadow-card-hover);
-  border-color: rgba(14, 79, 60, 0.25);
+  border-color: rgba(79,70,229,0.22);
 }
 
-/* Vault card aesthetic */
+.dark .fintech-card-interactive:hover {
+  border-color: rgba(129,140,248,0.28);
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* ════════════════════════════════════════════════
+   VAULT CARD (hero savings overview)
+════════════════════════════════════════════════ */
 .vault-card {
-  background: linear-gradient(135deg, #0E4F3C 0%, #0A3C2E 50%, #06281E 100%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(135deg, #4338CA 0%, #3730A3 50%, #312E81 100%);
+  border: 1px solid rgba(255,255,255,0.14);
   box-shadow: var(--shadow-vault);
   position: relative;
   overflow: hidden;
 }
 
+.dark .vault-card {
+  background: linear-gradient(135deg, #1E1B4B 0%, #1A1748 60%, #16134A 100%);
+  border-color: rgba(129,140,248,0.26);
+  box-shadow: var(--shadow-vault);
+}
+
+/* Specular top rim — mimics studio lighting */
 .vault-card::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 0; left: 0; right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.40), transparent);
 }
 
+/* Ambient accent orb */
 .vault-card::after {
   content: "";
   position: absolute;
-  bottom: -60px;
-  right: -60px;
-  width: 220px;
-  height: 220px;
-  background: radial-gradient(circle, rgba(217, 138, 43, 0.18) 0%, transparent 70%);
+  bottom: -60px; right: -60px;
+  width: 220px; height: 220px;
+  background: radial-gradient(circle, rgba(251,191,36,0.16) 0%, transparent 70%);
   pointer-events: none;
 }
 
-/* Specular button highlights */
-.btn-specular {
-  position: relative;
-  overflow: hidden;
-}
-
-.btn-specular::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.05));
-  pointer-events: none;
-}
-
-/* Tactile Touch and Click Response */
+/* ════════════════════════════════════════════════
+   TACTILE PRESS MICRO-ANIMATION
+════════════════════════════════════════════════ */
 .touch-press {
-  transition: transform 140ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 140ms ease, opacity 140ms ease;
+  transition: transform 140ms cubic-bezier(0.16,1,0.3,1),
+              box-shadow 140ms ease, opacity 140ms ease;
   will-change: transform;
 }
 .touch-press:active:not(:disabled) {
   transform: scale(0.988) translateY(0.5px);
 }
 
-/* Reduced motion preference */
+/* ════════════════════════════════════════════════
+   SKELETON SHIMMER
+════════════════════════════════════════════════ */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--line) 25%,
+    rgba(255,255,255,0.06) 50%,
+    var(--line) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+/* ════════════════════════════════════════════════
+   REDUCED MOTION
+════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *,*::before,*::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;

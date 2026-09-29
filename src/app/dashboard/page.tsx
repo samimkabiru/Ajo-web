@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, isPhoneVerified } = useAuth();
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
@@ -81,9 +81,9 @@ export default function DashboardPage() {
 
         {/* Pending Invites Alert Banner */}
         {pendingInvites.length > 0 && (
-          <div className="p-4 rounded-[12px] bg-accent-tint border border-accent/30 flex items-center justify-between gap-4 shadow-subtle">
+          <div className="p-4 rounded-[12px] bg-accent-tint border border-accent/30 dark:bg-amber-500/10 dark:border-amber-500/30 flex items-center justify-between gap-4 shadow-subtle dark:shadow-[0_0_20px_rgba(245,158,11,0.12)]">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-accent text-white flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-accent text-white flex items-center justify-center shrink-0 dark:shadow-[0_0_12px_rgba(245,158,11,0.35)]">
                 <Mail className="w-5 h-5" />
               </div>
               <div>
@@ -112,41 +112,49 @@ export default function DashboardPage() {
         ) : userGroups.length > 0 ? (
           <>
             {/* The One Leading Metric Card per Section 9 */}
-            <div className="vault-card rounded-[18px] p-6 sm:p-8 text-white relative shadow-vault overflow-hidden">
-              <div className="absolute top-4 right-5 text-white/5 pointer-events-none">
-                <Coins className="w-40 h-40 -mr-10 -mt-10" />
-              </div>
-
+            {/* Executive Portfolio Overview Card */}
+            <div className="vault-card rounded-[16px] p-5 sm:p-7 text-white relative shadow-vault overflow-hidden">
               <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-white/70">
-                    Your Savings Portfolio
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-white/70">
+                    Savings Portfolio
+                  </span>
+                  <span className="text-[11px] bg-white/10 px-2.5 py-0.5 rounded-full text-white/90 border border-white/10 font-medium">
+                    Rotation Pools
                   </span>
                 </div>
 
-                <div className="font-heading font-black text-3xl sm:text-5xl text-white tabular-nums tracking-tight mb-2">
+                <div className="font-heading font-black text-2xl sm:text-4xl text-white tabular-nums tracking-tight mb-1.5">
                   {userGroups.length} Active {userGroups.length === 1 ? "Circle" : "Circles"}
                 </div>
-                <p className="text-xs sm:text-sm text-white/80 max-w-lg leading-relaxed">
-                  Rotational savings active across your groups. Each month guarantees a full lump-sum collection for one designated beneficiary.
+                <p className="text-xs sm:text-sm text-white/80 max-w-md leading-relaxed">
+                  Monthly rotational savings pools under scheduled payout rotations with zero interest.
                 </p>
 
-                <div className="pt-5 mt-5 border-t border-white/15 flex flex-wrap items-center gap-4 text-xs text-white/90">
-                  <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
-                    <ShieldCheck className="w-3.5 h-3.5 text-accent" />
-                    <span>Double-pay protected</span>
+                <div className="pt-4 mt-4 border-t border-white/10 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs text-white/90">
+                  <div>
+                    <span className="text-[10px] text-white/60 uppercase tracking-wider block">Total Circles</span>
+                    <strong className="text-sm font-bold text-white tabular-nums">{userGroups.length}</strong>
                   </div>
-                  <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
-                    <TrendingUp className="w-3.5 h-3.5 text-positive" />
-                    <span>Zero interest platform</span>
+                  <div>
+                    <span className="text-[10px] text-white/60 uppercase tracking-wider block">Active Rounds</span>
+                    <strong className="text-sm font-bold text-white tabular-nums">
+                      {userGroups.filter((g) => g.hasActiveRound).length}
+                    </strong>
+                  </div>
+                  <div className="col-span-2 sm:col-span-1">
+                    <span className="text-[10px] text-white/60 uppercase tracking-wider block">Security Standing</span>
+                    <strong className="text-sm font-bold text-white flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-positive" />
+                      {isPhoneVerified ? "Phone Verified" : "Needs Verification"}
+                    </strong>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* My Active Circles Section */}
-            <div className="space-y-3">
+            <div className="space-y-3 pt-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <h3 className="font-heading font-bold text-lg text-ink">
@@ -170,16 +178,17 @@ export default function DashboardPage() {
                         <div>
                           <div className="flex items-start justify-between gap-2 mb-2">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-tint to-primary/10 border border-primary/20 text-primary flex items-center justify-center font-heading font-bold text-base shadow-xs">
+                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-tint to-primary/10 border border-primary/20 text-primary dark:from-indigo-500/20 dark:to-indigo-500/5 dark:border-indigo-500/30 dark:text-indigo-300 dark:shadow-[0_0_10px_rgba(129,140,248,0.15)] flex items-center justify-center font-heading font-bold text-base shadow-xs">
                                 {group.name.charAt(0).toUpperCase()}
                               </div>
                               <div>
                                 <h4 className="font-heading font-bold text-base text-ink line-clamp-1 group-hover:text-primary transition-colors">
                                   {group.name}
                                 </h4>
-                                <span className="text-xs text-muted flex items-center gap-1">
+                                <span className="text-xs text-muted flex items-center gap-1 mt-0.5">
                                   <Users className="w-3 h-3 text-muted" />
-                                  {group.memberCount ?? 1} members
+                                  <span className="tabular-nums font-medium text-ink">{group.memberCount ?? 1}</span>
+                                  <span>{group.memberCount === 1 ? "member" : "members"}</span>
                                 </span>
                               </div>
                             </div>
@@ -191,14 +200,12 @@ export default function DashboardPage() {
                             )}
                           </div>
 
-                          {group.description && (
-                            <p className="text-xs text-muted line-clamp-2 my-2 leading-relaxed">
-                              {group.description}
-                            </p>
-                          )}
+                          <p className="text-xs text-muted line-clamp-2 my-2.5 leading-relaxed">
+                            {group.description || "Active rotational savings circle."}
+                          </p>
                         </div>
 
-                        <div className="pt-3 mt-3 border-t border-line/60 flex items-center justify-between text-xs text-muted">
+                        <div className="pt-3 mt-3 border-t border-line/60 dark:border-white/10 flex items-center justify-between text-xs text-muted">
                           <span className="font-medium text-[11px]">Manage Circle</span>
                           <span className="font-semibold text-primary flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                             Open <ArrowRight className="w-3.5 h-3.5" />
@@ -210,15 +217,15 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 /* List View */
-                <div className="bg-surface rounded-[14px] border border-line divide-y divide-line/60 overflow-hidden shadow-subtle">
+                <div className="bg-surface dark:bg-[#171B22] rounded-[14px] border border-line dark:border-white/[0.08] divide-y divide-line/60 dark:divide-white/[0.05] overflow-hidden shadow-subtle">
                   {userGroups.map((group) => (
                     <Link
                       key={group.id}
                       href={`/groups/${group.id}`}
-                      className="flex items-center justify-between p-4 hover:bg-canvas/60 transition-colors group"
+                      className="flex flex-col sm:flex-row sm:items-center justify-between p-4 hover:bg-canvas/60 dark:hover:bg-white/[0.03] transition-colors group gap-3"
                     >
-                      <div className="flex items-center gap-3.5 min-w-0 pr-4">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-tint to-primary/10 border border-primary/20 text-primary flex items-center justify-center font-heading font-bold text-base shrink-0 shadow-xs">
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-tint to-primary/10 border border-primary/20 text-primary dark:from-indigo-500/20 dark:to-indigo-500/5 dark:border-indigo-500/30 dark:text-indigo-300 dark:shadow-[0_0_10px_rgba(129,140,248,0.15)] flex items-center justify-center font-heading font-bold text-base shrink-0 shadow-xs">
                           {group.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
@@ -232,22 +239,22 @@ export default function DashboardPage() {
                               <Badge variant="neutral" className="text-[10px] py-0">Forming</Badge>
                             )}
                           </div>
-                          {group.description ? (
-                            <p className="text-xs text-muted truncate max-w-md">
-                              {group.description}
-                            </p>
-                          ) : (
-                            <p className="text-xs text-muted">No description set</p>
-                          )}
+                          <p className="text-xs text-muted truncate max-w-md mt-0.5">
+                            {group.description || "Active rotational savings circle"}
+                          </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-4 shrink-0">
-                        <span className="text-xs text-muted flex items-center gap-1 hidden sm:flex">
-                          <Users className="w-3.5 h-3.5" />
-                          {group.memberCount ?? 1} members
+                      <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 pl-13 sm:pl-0">
+                        <span className="text-xs text-muted flex items-center gap-1.5">
+                          <Users className="w-3.5 h-3.5 text-muted" />
+                          <span className="tabular-nums font-medium text-ink">{group.memberCount ?? 1}</span>
+                          <span>{group.memberCount === 1 ? "member" : "members"}</span>
                         </span>
-                        <ArrowRight className="w-4 h-4 text-muted group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                        <span className="text-xs font-semibold text-primary flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                          <span>View</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </span>
                       </div>
                     </Link>
                   ))}
@@ -270,7 +277,7 @@ export default function DashboardPage() {
 
             {/* 3 Step onboarding guide */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto mb-8 text-left">
-              <div className="bg-canvas border border-line rounded-xl p-4">
+              <div className="bg-canvas dark:bg-[#0C0F14] border border-line dark:border-white/[0.08] rounded-xl p-4">
                 <span className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center mb-2">
                   1
                 </span>
@@ -282,7 +289,7 @@ export default function DashboardPage() {
                 </p>
               </div>
 
-              <div className="bg-canvas border border-line rounded-xl p-4">
+              <div className="bg-canvas dark:bg-[#0C0F14] border border-line dark:border-white/[0.08] rounded-xl p-4">
                 <span className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center mb-2">
                   2
                 </span>
@@ -294,7 +301,7 @@ export default function DashboardPage() {
                 </p>
               </div>
 
-              <div className="bg-canvas border border-line rounded-xl p-4">
+              <div className="bg-canvas dark:bg-[#0C0F14] border border-line dark:border-white/[0.08] rounded-xl p-4">
                 <span className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center mb-2">
                   3
                 </span>
