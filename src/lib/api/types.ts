@@ -226,3 +226,50 @@ export interface RepaymentSummary {
   amountKobo: number;
   createdAt: string;
 }
+
+export type BuyInMethod = "ONLINE" | "CASH";
+
+export interface BuyInSummary {
+  id: string;
+  roundId: string;
+  exitRequestId: string;
+  participantId: string;
+  leaver: UserSummary;
+  replacement: UserSummary;
+  amountKobo: number;
+  method: BuyInMethod;
+  recordedBy: string;
+  buyInTransactionId: string;
+  refundTransactionId: string | null;
+  createdAt: string;
+}
+
+export interface RefundSummary {
+  id: string;
+  cycleId: string;
+  exitRequestId: string;
+  participantId: string;
+  recipient: UserSummary;
+  expectedAmountKobo: number;
+  actualAmountKobo: number;
+  shortfallKobo: number;
+  ledgerTransactionId: string;
+  createdAt: string;
+}
+
+export interface SettlementSummary {
+  cycleId: string;
+  potKobo: number;
+  refund: RefundSummary;
+  claimsSettled: ShortfallClaimSummary[];
+  remainingKobo: number;
+  cycleStatus: CycleStatus;
+}
+
+export interface VacantCycleSummary {
+  cycleId: string;
+  potKobo: number;
+  refundOwedKobo: number;
+  openClaimsKobo: number;
+  readyToSettle: boolean;
+}

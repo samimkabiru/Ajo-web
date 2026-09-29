@@ -19,6 +19,10 @@ import {
   ExitRequestSummary,
   RepaymentSummary,
   PaymentMethod,
+  BuyInSummary,
+  RefundSummary,
+  SettlementSummary,
+  VacantCycleSummary,
 } from "./types";
 
 // ======================== AUTH ========================
@@ -397,4 +401,46 @@ export async function apiCancelExit(exitId: string): Promise<void> {
   return apiFetch<void>(`/exits/${exitId}/cancel`, {
     method: "POST",
   });
+}
+
+export async function apiGetRoundExits(roundId: string): Promise<ExitRequestSummary[]> {
+  return apiFetch<ExitRequestSummary[]>(`/rounds/${roundId}/exits`);
+}
+
+export async function apiBuyIn(
+  exitId: string,
+  body: { replacementUserId: string; amountKobo: number; method?: "ONLINE" | "CASH" },
+  idempotencyKey?: string
+): Promise<BuyInSummary> {
+  return apiFetch<BuyInSummary>(`/exits/${exitId}/buy-in`, {
+    method: "POST",
+    body: JSON.stringify(body),
+    idempotencyKey,
+  });
+}
+
+export async function apiGetRoundBuyIns(roundId: string): Promise<BuyInSummary[]> {
+  return apiFetch<BuyInSummary[]>(`/rounds/${roundId}/buy-ins`);
+}
+
+export async function apiGetExitBuyIn(exitId: string): Promise<BuyInSummary> {
+  return apiFetch<BuyInSummary>(`/exits/${exitId}/buy-in`);
+}
+
+export async function apiGetCycleSettlement(cycleId: string): Promise<VacantCycleSummary> {
+  return apiFetch<VacantCycleSummary>(`/cycles/${cycleId}/settlement`);
+}
+
+export async function apiSettleCycle(cycleId: string): Promise<SettlementSummary> {
+  return apiFetch<SettlementSummary>(`/cycles/${cycleId}/settle`, {
+    method: "POST",
+  });
+}
+
+export async function apiGetRoundRefunds(roundId: string): Promise<RefundSummary[]> {
+  return apiFetch<RefundSummary[]>(`/rounds/${roundId}/refunds`);
+}
+
+export async function apiGetExitRefund(exitId: string): Promise<RefundSummary> {
+  return apiFetch<RefundSummary>(`/exits/${exitId}/refund`);
 }

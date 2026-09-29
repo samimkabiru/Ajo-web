@@ -18,6 +18,8 @@ import {
   apiAddParticipant,
   apiRemoveParticipant,
   apiGetRoundShortfallClaims,
+  apiGetRoundExits,
+  apiGetCycleSettlement,
 } from "@/lib/api/endpoints";
 import { AuthenticatedLayout } from "@/components/common/authenticated-layout";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -39,10 +41,18 @@ import { HeroPotCard } from "@/components/money/hero-pot-card";
 import { SwapSheet } from "@/components/rounds/swap-sheet";
 import { ExitSheet } from "@/components/rounds/exit-sheet";
 import { EditRoundModal } from "@/components/rounds/edit-round-modal";
+import { BuyInModal } from "@/components/rounds/buy-in-modal";
+import { SettleCycleModal } from "@/components/rounds/settle-cycle-modal";
 import { useAuth } from "@/context/auth-context";
 import { formatKobo, formatPoolBalance, formatSignedKobo } from "@/lib/money";
 import { getErrorMessage } from "@/lib/api/errors";
-import { CycleSummary, ParticipantSummary } from "@/lib/api/types";
+import {
+  CycleSummary,
+  ParticipantSummary,
+  ExitRequestSummary,
+  VacantCycleSummary,
+  UserSummary,
+} from "@/lib/api/types";
 import {
   Coins,
   Users,
@@ -63,6 +73,7 @@ import {
   LogOut,
   XCircle,
   Sliders,
+  Scale,
 } from "lucide-react";
 
 export default function RoundDetailPage() {
@@ -81,6 +92,9 @@ export default function RoundDetailPage() {
   const [isAddParticipantModalOpen, setIsAddParticipantModalOpen] = useState(false);
   const [isSwapOpen, setIsSwapOpen] = useState(false);
   const [isExitOpen, setIsExitOpen] = useState(false);
+  const [isBuyInOpen, setIsBuyInOpen] = useState(false);
+  const [selectedExitForBuyIn, setSelectedExitForBuyIn] = useState<ExitRequestSummary | null>(null);
+  const [isSettleCycleOpen, setIsSettleCycleOpen] = useState(false);
   const [selectedMemberUserId, setSelectedMemberUserId] = useState("");
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -152,8 +166,30 @@ export default function RoundDetailPage() {
     enabled: !!user && !!currentCycle?.id,
   });
 
+  // Round exits for admins (to offer buy-ins)
+  const { data: roundExits, refetch: refetchRoundExits } = useQuery({
+    queryKey: ["round-exits", roundId],
+    queryFn: () => apiGetRoundExits(roundId),
+    enabled: !!user && !!roundId && round?.status === "ACTIVE",
+  });
+
+  // Vacant settlement preview for selected cycle
+  const { data: vacantSettlement, refetch: refetchSettlement } = useQuery({
+    queryKey: ["cycle-settlement", currentCycle?.id],
+    queryFn: () => apiGetCycleSettlement(currentCycle!.id),
+    enabled: !!currentCycle?.id && currentCycle?.status === "VACANT",
+  });
+
   // Admin status
   const isAdmin = group?.createdBy === user?.id || round?.createdBy === user?.id;
+
+  // Eligible replacement members from the circle who are not yet participating in this round
+  const eligibleReplacements: UserSummary[] =
+    group?.members
+      ?.map((m) => m.user)
+      .filter((u): u is UserSummary => !!u && !round?.participants?.some((p) => p.user?.id === u.id)) || [];
+
+  const pendingExits = roundExits?.filter((e) => e.status === "PENDING_SETTLEMENT") || [];
 
   // Mutations
   const activateRoundMutation = useMutation({
@@ -571,6 +607,53 @@ export default function RoundDetailPage() {
               </Card>
             </div>
 
+            {/* Pending Exits Banner (Admin Buy-In opportunity) */}
+            {isAdmin && pendingExits.length > 0 && (
+              <div className="p-4 rounded-[12px] bg-indigo-500/10 border border-indigo-500/25 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <UserX className="w-4 h-4 text-primary shrink-0" />
+                    <span className="font-heading font-bold text-sm text-ink">
+                      Active Exit Request ({pendingExits.length})
+                    </span>
+                  </div>
+                  <span className="text-xs text-muted">Awaiting replacement member or cycle settlement</span>
+                </div>
+                <div className="space-y-2">
+                  {pendingExits.map((exit) => {
+                    const leaverName =
+                      ("fullName" in (exit.participant || {})
+                        ? (exit.participant as UserSummary).fullName
+                        : (exit.participant as any)?.user?.fullName) || "Member";
+                    const buyInKobo = Math.abs(exit.exposureAtRequest || exit.exposureKobo || 0);
+
+                    return (
+                      <div
+                        key={exit.id}
+                        className="p-3 rounded-lg bg-surface dark:bg-[#14171B] border border-line/60 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                      >
+                        <div>
+                          <strong className="text-ink font-semibold">{leaverName}</strong> has requested to leave the round. Required Buy-In:{" "}
+                          <strong className="text-positive tabular-nums">{formatKobo(buyInKobo)}</strong>.
+                        </div>
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedExitForBuyIn(exit);
+                            setIsBuyInOpen(true);
+                          }}
+                        >
+                          <UserCheck className="w-3.5 h-3.5 mr-1" />
+                          Fill Slot (Buy-In)
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Cycle Timeline */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -644,8 +727,62 @@ export default function RoundDetailPage() {
                           Collect Pot ({formatKobo(actualPotKobo)})
                         </Button>
                       )}
+
+                    {/* Settle vacant cycle button */}
+                    {currentCycle.status === "VACANT" && isAdmin && (
+                      <Button
+                        variant="primary"
+                        size="default"
+                        onClick={() => setIsSettleCycleOpen(true)}
+                        disabled={!vacantSettlement?.readyToSettle}
+                        className="bg-amber-600 hover:bg-amber-700 text-white font-semibold"
+                      >
+                        <Scale className="w-4 h-4 mr-1.5" />
+                        Settle Vacant Month
+                      </Button>
+                    )}
                   </div>
                 </div>
+
+                {/* Vacant Settlement Breakdown */}
+                {currentCycle.status === "VACANT" && (
+                  <div className="p-4 rounded-[12px] bg-amber-500/10 border border-amber-500/25 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+                        <span className="font-heading font-bold text-sm text-ink">
+                          Vacant Month — Beneficiary Exited Round
+                        </span>
+                      </div>
+                      <Badge variant="danger">Vacant</Badge>
+                    </div>
+
+                    {vacantSettlement ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-1">
+                        <div className="p-2.5 rounded-lg bg-surface/70 border border-line/40">
+                          <span className="text-muted block text-[11px]">Accumulated Pot</span>
+                          <span className="font-bold text-ink tabular-nums">{formatKobo(vacantSettlement.potKobo)}</span>
+                        </div>
+                        <div className="p-2.5 rounded-lg bg-surface/70 border border-line/40">
+                          <span className="text-muted block text-[11px]">Refund Owed</span>
+                          <span className="font-bold text-positive tabular-nums">{formatKobo(vacantSettlement.refundOwedKobo)}</span>
+                        </div>
+                        <div className="p-2.5 rounded-lg bg-surface/70 border border-line/40">
+                          <span className="text-muted block text-[11px]">Open Shortfall Claims</span>
+                          <span className="font-bold text-amber-600 dark:text-amber-400 tabular-nums">{formatKobo(vacantSettlement.openClaimsKobo)}</span>
+                        </div>
+                        <div className="p-2.5 rounded-lg bg-surface/70 border border-line/40">
+                          <span className="text-muted block text-[11px]">Settlement Status</span>
+                          <span className={`font-bold ${vacantSettlement.readyToSettle ? "text-positive" : "text-amber-600"}`}>
+                            {vacantSettlement.readyToSettle ? "Ready to Settle ✓" : "Contributions Pending"}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted">Calculating vacant cycle settlement values…</p>
+                    )}
+                  </div>
+                )}
 
                 {/* Beneficiary Banner */}
                 <div className="p-4 rounded-[12px] bg-canvas dark:bg-[#14171B] border border-line dark:border-white/10 dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1006,6 +1143,39 @@ export default function RoundDetailPage() {
             groupId={round.groupId}
             initialContributionAmountKobo={round.contributionAmountKobo}
             initialFirstPayoutDate={round.firstPayoutDate}
+          />
+        )}
+
+        {/* Modal: Replacement Buy-In */}
+        <BuyInModal
+          isOpen={isBuyInOpen}
+          onClose={() => {
+            setIsBuyInOpen(false);
+            setSelectedExitForBuyIn(null);
+          }}
+          exit={selectedExitForBuyIn}
+          eligibleReplacements={eligibleReplacements}
+          onSuccess={() => {
+            refetchRound();
+            refetchRoundExits();
+            queryClient.invalidateQueries({ queryKey: ["group", round.groupId] });
+          }}
+        />
+
+        {/* Modal: Settle Vacant Cycle */}
+        {currentCycle && (
+          <SettleCycleModal
+            isOpen={isSettleCycleOpen}
+            onClose={() => setIsSettleCycleOpen(false)}
+            cycleId={currentCycle.id}
+            cycleNumber={currentCycle.cycleNumber}
+            settlement={vacantSettlement || null}
+            onSuccess={() => {
+              refetchRound();
+              refetchSettlement();
+              queryClient.invalidateQueries({ queryKey: ["shortfall-claims", roundId] });
+              queryClient.invalidateQueries({ queryKey: ["pool-balance", roundId] });
+            }}
           />
         )}
       </div>
