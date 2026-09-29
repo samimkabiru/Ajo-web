@@ -447,8 +447,13 @@ export async function apiGetRoundBuyIns(roundId: string): Promise<BuyInSummary[]
   return apiFetch<BuyInSummary[]>(`/rounds/${roundId}/buy-ins`);
 }
 
-export async function apiGetExitBuyIn(exitId: string): Promise<BuyInSummary> {
-  return apiFetch<BuyInSummary>(`/exits/${exitId}/buy-in`);
+export async function apiGetExitBuyIn(exitId: string): Promise<BuyInSummary | null> {
+  try {
+    return await apiFetch<BuyInSummary>(`/exits/${exitId}/buy-in`);
+  } catch (err: unknown) {
+    if ((err as { status?: number }).status === 404) return null;
+    throw err;
+  }
 }
 
 export async function apiGetCycleSettlement(cycleId: string): Promise<VacantCycleSummary> {
@@ -465,6 +470,11 @@ export async function apiGetRoundRefunds(roundId: string): Promise<RefundSummary
   return apiFetch<RefundSummary[]>(`/rounds/${roundId}/refunds`);
 }
 
-export async function apiGetExitRefund(exitId: string): Promise<RefundSummary> {
-  return apiFetch<RefundSummary>(`/exits/${exitId}/refund`);
+export async function apiGetExitRefund(exitId: string): Promise<RefundSummary | null> {
+  try {
+    return await apiFetch<RefundSummary>(`/exits/${exitId}/refund`);
+  } catch (err: unknown) {
+    if ((err as { status?: number }).status === 404) return null;
+    throw err;
+  }
 }

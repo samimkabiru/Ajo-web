@@ -11,6 +11,8 @@ import {
   apiRequestExit,
   apiCancelExit,
   apiRepay,
+  apiGetExitBuyIn,
+  apiGetExitRefund,
 } from "@/lib/api/endpoints";
 import { formatKobo, formatSignedKobo, parseNairaToKobo } from "@/lib/money";
 import { useIdempotencyKey } from "@/lib/idempotency";
@@ -61,6 +63,18 @@ export function ExitSheet({
     queryKey: ["my-exit", roundId],
     queryFn: () => apiGetMyExit(roundId),
     enabled: isOpen && !!roundId,
+  });
+
+  const { data: exitBuyIn } = useQuery({
+    queryKey: ["exit-buy-in", myExit?.id],
+    queryFn: () => apiGetExitBuyIn(myExit!.id),
+    enabled: isOpen && !!myExit?.id && myExit.status === "COMPLETED",
+  });
+
+  const { data: exitRefund } = useQuery({
+    queryKey: ["exit-refund", myExit?.id],
+    queryFn: () => apiGetExitRefund(myExit!.id),
+    enabled: isOpen && !!myExit?.id && myExit.status === "COMPLETED",
   });
 
   const requestExitMutation = useMutation({
@@ -173,8 +187,32 @@ export function ExitSheet({
                 myExit.requestedAt || myExit.createdAt || Date.now()
               ).toLocaleDateString()}
               .
-              {isOwedRefund && " You are queued for a refund when replacement funds arrive."}
+              {isOwedRefund && myExit.status !== "COMPLETED" && " You are queued for a refund when replacement funds arrive."}
             </p>
+
+            {/* Completed Resolution Details */}
+            {exitBuyIn && (
+              <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs space-y-1 mt-2">
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400 block">
+                  Replaced by {exitBuyIn.replacement.fullName}
+                </span>
+                <span className="text-muted block">
+                  Buy-in of {formatKobo(exitBuyIn.amountKobo)} confirmed ({exitBuyIn.method || "ONLINE"}).
+                </span>
+              </div>
+            )}
+            {exitRefund && (
+              <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs space-y-1 mt-2">
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400 block">
+                  Refund Disbursed: {formatKobo(exitRefund.actualAmountKobo)}
+                </span>
+                {exitRefund.ledgerTransactionId && (
+                  <span className="text-muted block font-mono text-[10px]">
+                    Ledger Tx: {exitRefund.ledgerTransactionId}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         )}
 
