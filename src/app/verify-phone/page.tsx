@@ -30,10 +30,13 @@ export default function VerifyPhonePage() {
   const [secondsUntilResend, setSecondsUntilResend] = useState(0);
   const [secondsUntilExpiry, setSecondsUntilExpiry] = useState(0);
 
-  // Automatically request verification code on mount if authenticated and unverified
+  const hasRequestedRef = useRef(false);
+
+  // Automatically request verification code on mount if authenticated and unverified (run once)
   useEffect(() => {
-    if (isAuthenticated && user && !user.phoneVerified && !expiresAt) {
-      handleRequestCode();
+    if (isAuthenticated && user && !user.phoneVerified && !hasRequestedRef.current) {
+      hasRequestedRef.current = true;
+      handleRequestCode(false);
     }
   }, [isAuthenticated, user]);
 
@@ -54,21 +57,35 @@ export default function VerifyPhonePage() {
     return () => clearInterval(interval);
   }, [resendAvailableAt, expiresAt]);
 
-  const handleRequestCode = async () => {
+  const handleRequestCode = async (isManual = false) => {
     setIsRequestingCode(true);
-    setErrorMsg(null);
+    if (isManual) {
+      setErrorMsg(null);
+    }
     try {
       const res = await apiRequestPhoneVerification();
       if (res.expiresAt) setExpiresAt(new Date(res.expiresAt));
-      if (res.resendAvailableAt) setResendAvailableAt(new Date(res.resendAvailableAt));
-      setSuccessMsg("Verification code requested.");
+      if (res.resendAvailableAt) {
+        setResendAvailableAt(new Date(res.resendAvailableAt));
+      } else {
+        setResendAvailableAt(new Date(Date.now() + 60000));
+      }
+      setSuccessMsg("Verification code sent to your phone.");
       // Focus first input
       setTimeout(() => inputRefs.current[0]?.focus(), 100);
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
         setErrorMsg("Your phone number is already verified.");
       } else if (err instanceof ApiError && err.status === 429) {
-        setErrorMsg("Too many code requests. Please wait a few moments before trying again.");
+        // A code was sent moments ago — code is still active and valid!
+        // Start a 60-second cooldown so user waits before requesting another.
+        setResendAvailableAt(new Date(Date.now() + 60000));
+        if (isManual) {
+          setErrorMsg("A code was sent moments ago. Please wait before requesting another.");
+        } else {
+          setSuccessMsg("A verification code was sent to your phone. Enter the 6 digits below.");
+        }
+        setTimeout(() => inputRefs.current[0]?.focus(), 100);
       } else {
         setErrorMsg(getErrorMessage(err));
       }
@@ -279,7 +296,7 @@ export default function VerifyPhonePage() {
 
             <button
               type="button"
-              onClick={handleRequestCode}
+              onClick={() => handleRequestCode(true)}
               disabled={secondsUntilResend > 0 || isRequestingCode}
               className="text-primary hover:underline disabled:text-muted disabled:no-underline font-semibold touch-press inline-flex items-center gap-1"
             >
