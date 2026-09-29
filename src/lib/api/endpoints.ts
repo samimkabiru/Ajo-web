@@ -182,8 +182,8 @@ export async function apiGetGroupRounds(groupId: string): Promise<RoundSummary[]
 export async function apiCreateRound(
   groupId: string,
   body: { contributionAmountKobo: number; firstPayoutDate?: string }
-): Promise<RoundDetail> {
-  return apiFetch<RoundDetail>(`/groups/${groupId}/rounds`, {
+): Promise<RoundSummary> {
+  return apiFetch<RoundSummary>(`/groups/${groupId}/rounds`, {
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -196,8 +196,8 @@ export async function apiGetRound(roundId: string): Promise<RoundDetail> {
 export async function apiUpdateRound(
   roundId: string,
   body: { contributionAmountKobo?: number; firstPayoutDate?: string }
-): Promise<RoundDetail> {
-  return apiFetch<RoundDetail>(`/rounds/${roundId}`, {
+): Promise<RoundSummary> {
+  return apiFetch<RoundSummary>(`/rounds/${roundId}`, {
     method: "PATCH",
     body: JSON.stringify(body),
   });

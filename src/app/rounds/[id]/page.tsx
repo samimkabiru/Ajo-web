@@ -38,6 +38,7 @@ import { PayoutSheet } from "@/components/money/payout-sheet";
 import { HeroPotCard } from "@/components/money/hero-pot-card";
 import { SwapSheet } from "@/components/rounds/swap-sheet";
 import { ExitSheet } from "@/components/rounds/exit-sheet";
+import { EditRoundModal } from "@/components/rounds/edit-round-modal";
 import { useAuth } from "@/context/auth-context";
 import { formatKobo, formatPoolBalance, formatSignedKobo } from "@/lib/money";
 import { getErrorMessage } from "@/lib/api/errors";
@@ -61,6 +62,7 @@ import {
   ArrowLeftRight,
   LogOut,
   XCircle,
+  Sliders,
 } from "lucide-react";
 
 export default function RoundDetailPage() {
@@ -75,6 +77,7 @@ export default function RoundDetailPage() {
   const [isPayoutOpen, setIsPayoutOpen] = useState(false);
   const [isActivateConfirmOpen, setIsActivateConfirmOpen] = useState(false);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
+  const [isEditRoundTermsOpen, setIsEditRoundTermsOpen] = useState(false);
   const [isAddParticipantModalOpen, setIsAddParticipantModalOpen] = useState(false);
   const [isSwapOpen, setIsSwapOpen] = useState(false);
   const [isExitOpen, setIsExitOpen] = useState(false);
@@ -327,6 +330,17 @@ export default function RoundDetailPage() {
 
                   {isAdmin && (
                     <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setActionError(null);
+                          setIsEditRoundTermsOpen(true);
+                        }}
+                      >
+                        <Sliders className="w-3.5 h-3.5 mr-1.5" />
+                        Edit Terms
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -982,6 +996,18 @@ export default function RoundDetailPage() {
           roundId={roundId}
           participantId={myParticipant?.id}
         />
+
+        {/* Modal: Edit Round Terms */}
+        {round && (
+          <EditRoundModal
+            isOpen={isEditRoundTermsOpen}
+            onClose={() => setIsEditRoundTermsOpen(false)}
+            roundId={round.id}
+            groupId={round.groupId}
+            initialContributionAmountKobo={round.contributionAmountKobo}
+            initialFirstPayoutDate={round.firstPayoutDate}
+          />
+        )}
       </div>
     </AuthenticatedLayout>
   );

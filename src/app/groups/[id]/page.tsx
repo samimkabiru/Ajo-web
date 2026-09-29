@@ -26,6 +26,7 @@ import { formatKobo, parseNairaToKobo } from "@/lib/money";
 import { getErrorMessage } from "@/lib/api/errors";
 import { DatePicker } from "@/components/ui/date-picker";
 import { ViewToggle, ViewMode } from "@/components/common/view-toggle";
+import { EditGroupModal } from "@/components/groups/edit-group-modal";
 import { cn } from "@/lib/utils";
 import {
   Users,
@@ -41,6 +42,7 @@ import {
   PlusCircle,
   Clock,
   CheckCircle2,
+  Settings,
 } from "lucide-react";
 
 export default function GroupDetailPage() {
@@ -52,6 +54,7 @@ export default function GroupDetailPage() {
 
   const [activeTab, setActiveTab] = useState<"rounds" | "members" | "invites">("rounds");
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isEditGroupModalOpen, setIsEditGroupModalOpen] = useState(false);
   const [invitePhone, setInvitePhone] = useState("");
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [inviteSuccess, setInviteSuccess] = useState<string | null>(null);
@@ -233,17 +236,27 @@ export default function GroupDetailPage() {
             {/* Action buttons */}
             <div className="flex items-center gap-2 self-start sm:self-auto">
               {isAdmin ? (
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => {
-                    setRoundError(null);
-                    setIsCreateRoundModalOpen(true);
-                  }}
-                >
-                  <PlusCircle className="w-4 h-4 mr-1.5" />
-                  New Round
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditGroupModalOpen(true)}
+                  >
+                    <Settings className="w-4 h-4 mr-1.5" />
+                    Edit Circle
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => {
+                      setRoundError(null);
+                      setIsCreateRoundModalOpen(true);
+                    }}
+                  >
+                    <PlusCircle className="w-4 h-4 mr-1.5" />
+                    New Round
+                  </Button>
+                </>
               ) : (
                 <Button
                   variant="ghost"
@@ -716,6 +729,17 @@ export default function GroupDetailPage() {
             </div>
           </form>
         </Modal>
+
+        {/* Modal: Edit Group Settings */}
+        {group && (
+          <EditGroupModal
+            isOpen={isEditGroupModalOpen}
+            onClose={() => setIsEditGroupModalOpen(false)}
+            groupId={groupId}
+            initialName={group.name}
+            initialDescription={group.description}
+          />
+        )}
       </div>
     </AuthenticatedLayout>
   );
