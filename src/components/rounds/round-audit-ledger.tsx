@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { SimpleTooltip } from "@/components/ui/tooltip";
 import {
   apiGetRoundContributions,
   apiGetRoundPayouts,
@@ -214,17 +215,19 @@ export function RoundAuditLedger({ roundId, currentUserId }: RoundAuditLedgerPro
                           })}
                         </span>
                         {c.ledgerTransactionId && (
-                          <button
-                            type="button"
-                            onClick={() => copyToClipboard(c.ledgerTransactionId!)}
-                            className="font-mono text-[10px] text-primary hover:underline flex items-center gap-1"
-                            title="Click to copy Transaction ID"
-                          >
-                            <Copy className="w-3 h-3" />
-                            {copiedId === c.ledgerTransactionId
-                              ? "Copied!"
-                              : `Tx: ${c.ledgerTransactionId.slice(0, 8)}...`}
-                          </button>
+                          <SimpleTooltip content="Click to copy Transaction ID">
+                            <button
+                              type="button"
+                              onClick={() => copyToClipboard(c.ledgerTransactionId!)}
+                              className="font-mono text-[10px] text-primary hover:underline flex items-center gap-1"
+                              aria-label="Click to copy Transaction ID"
+                            >
+                              <Copy className="w-3 h-3" />
+                              {copiedId === c.ledgerTransactionId
+                                ? "Copied!"
+                                : `Tx: ${c.ledgerTransactionId.slice(0, 8)}...`}
+                            </button>
+                          </SimpleTooltip>
                         )}
                       </div>
                     </div>
@@ -287,17 +290,19 @@ export function RoundAuditLedger({ roundId, currentUserId }: RoundAuditLedgerPro
                           })}
                         </span>
                         {p.ledgerTransactionId ? (
-                          <button
-                            type="button"
-                            onClick={() => copyToClipboard(p.ledgerTransactionId!)}
-                            className="font-mono text-[10px] text-primary hover:underline flex items-center gap-1"
-                            title="Click to copy Transaction ID"
-                          >
-                            <Copy className="w-3 h-3" />
-                            {copiedId === p.ledgerTransactionId
-                              ? "Copied!"
-                              : `Tx: ${p.ledgerTransactionId.slice(0, 8)}...`}
-                          </button>
+                          <SimpleTooltip content="Click to copy Transaction ID">
+                            <button
+                              type="button"
+                              onClick={() => copyToClipboard(p.ledgerTransactionId!)}
+                              className="font-mono text-[10px] text-primary hover:underline flex items-center gap-1"
+                              aria-label="Click to copy Transaction ID"
+                            >
+                              <Copy className="w-3 h-3" />
+                              {copiedId === p.ledgerTransactionId
+                                ? "Copied!"
+                                : `Tx: ${p.ledgerTransactionId.slice(0, 8)}...`}
+                            </button>
+                          </SimpleTooltip>
                         ) : (
                           <span className="text-[10px] text-muted italic">Fully withheld</span>
                         )}

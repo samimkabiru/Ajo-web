@@ -35,6 +35,7 @@ import {
 import { CardSkeleton, Skeleton } from "@/components/ui/skeleton";
 import { Modal } from "@/components/ui/modal";
 import { ConfirmationModal } from "@/components/ui/confirmation-modal";
+import { SimpleTooltip } from "@/components/ui/tooltip";
 import {
   Select,
   SelectContent,
@@ -375,23 +376,28 @@ export default function RoundDetailPage() {
                   )}
 
                   {isAdmin && (
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => {
-                        setActionError(null);
-                        setIsActivateConfirmOpen(true);
-                      }}
-                      disabled={round.participants.length < 2}
-                      title={
+                    <SimpleTooltip
+                      content={
                         round.participants.length < 2
                           ? "At least 2 participants required to activate"
                           : "Activate round and begin cycle rotation"
                       }
                     >
-                      <Play className="w-3.5 h-3.5 mr-1.5 fill-current" />
-                      Activate Round
-                    </Button>
+                      <span className="inline-block">
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => {
+                            setActionError(null);
+                            setIsActivateConfirmOpen(true);
+                          }}
+                          disabled={round.participants.length < 2}
+                        >
+                          <Play className="w-3.5 h-3.5 mr-1.5 fill-current" />
+                          Activate Round
+                        </Button>
+                      </span>
+                    </SimpleTooltip>
                   )}
 
                   {(isAdmin || myParticipant) && (
@@ -577,21 +583,27 @@ export default function RoundDetailPage() {
                       </div>
 
                       <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => setSelectedParticipantForHistory(p)}
-                          title="View member audit record"
-                          className="p-1.5 text-muted hover:text-primary rounded-lg transition-colors touch-press"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        {isAdmin && (
+                        <SimpleTooltip content="View member audit record">
                           <button
-                            onClick={() => setParticipantToRemove(p)}
-                            title="Remove participant"
-                            className="p-1.5 text-muted hover:text-danger rounded-lg transition-colors touch-press"
+                            type="button"
+                            onClick={() => setSelectedParticipantForHistory(p)}
+                            className="p-1.5 text-muted hover:text-primary rounded-lg transition-colors touch-press"
+                            aria-label="View member audit record"
                           >
-                            <UserX className="w-4 h-4" />
+                            <Eye className="w-4 h-4" />
                           </button>
+                        </SimpleTooltip>
+                        {isAdmin && (
+                          <SimpleTooltip content="Remove participant from round">
+                            <button
+                              type="button"
+                              onClick={() => setParticipantToRemove(p)}
+                              className="p-1.5 text-muted hover:text-danger rounded-lg transition-colors touch-press"
+                              aria-label="Remove participant"
+                            >
+                              <UserX className="w-4 h-4" />
+                            </button>
+                          </SimpleTooltip>
                         )}
                       </div>
                     </div>
@@ -974,14 +986,16 @@ export default function RoundDetailPage() {
                           </div>
 
                           <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setSelectedParticipantForHistory(p)}
-                              title="View member audit record"
-                              className="p-1.5 text-muted hover:text-primary rounded-lg transition-colors touch-press"
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                            </button>
+                            <SimpleTooltip content="View member audit record">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedParticipantForHistory(p)}
+                                className="p-1.5 text-muted hover:text-primary rounded-lg transition-colors touch-press"
+                                aria-label="View member audit record"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                              </button>
+                            </SimpleTooltip>
                             {isPaid ? (
                               <div className="text-right">
                                 <span className="text-xs font-bold text-positive block tabular-nums">

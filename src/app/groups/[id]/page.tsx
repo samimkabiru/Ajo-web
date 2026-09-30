@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { ConfirmationModal } from "@/components/ui/confirmation-modal";
+import { SimpleTooltip } from "@/components/ui/tooltip";
 import { Badge, RoundStatusBadge } from "@/components/ui/badge";
 import { CardSkeleton, Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -519,13 +520,15 @@ export default function GroupDetailPage() {
                       )}
 
                       {isAdmin && memberId !== user?.id && (
-                        <button
-                          onClick={() => setMemberToRemove({ id: memberId, fullName: member.user.fullName })}
-                          title="Remove member"
-                          className="p-1.5 text-muted hover:text-danger rounded-lg transition-colors touch-press"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <SimpleTooltip content="Remove member from circle">
+                          <button
+                            onClick={() => setMemberToRemove({ id: memberId, fullName: member.user.fullName })}
+                            className="p-1.5 text-muted hover:text-danger rounded-lg transition-colors touch-press"
+                            aria-label="Remove member"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </SimpleTooltip>
                       )}
                     </div>
                   </Card>
@@ -580,13 +583,15 @@ export default function GroupDetailPage() {
 
                       <div className="flex items-center gap-2">
                         <Badge variant="warning">Pending</Badge>
-                        <button
-                          onClick={() => setInviteToRevoke({ id: invite.id, phone: invite.phone })}
-                          title="Revoke invitation"
-                          className="p-1.5 text-muted hover:text-danger rounded-lg transition-colors touch-press"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <SimpleTooltip content="Revoke invitation">
+                          <button
+                            onClick={() => setInviteToRevoke({ id: invite.id, phone: invite.phone })}
+                            className="p-1.5 text-muted hover:text-danger rounded-lg transition-colors touch-press"
+                            aria-label="Revoke invitation"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </SimpleTooltip>
                       </div>
                     </Card>
                   ))}

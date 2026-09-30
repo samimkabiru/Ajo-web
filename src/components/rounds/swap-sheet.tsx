@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { SimpleTooltip } from "@/components/ui/tooltip";
 import {
   Select,
   SelectContent,
@@ -157,12 +158,11 @@ export function SwapSheet({
         );
       case "SUPERSEDED":
         return (
-          <span
-            title="A subsequent rotation change superseded this proposal"
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400"
-          >
-            <Clock className="w-3 h-3" /> Superseded
-          </span>
+          <SimpleTooltip content="A subsequent rotation change superseded this proposal">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400 cursor-help">
+              <Clock className="w-3 h-3" /> Superseded
+            </span>
+          </SimpleTooltip>
         );
       case "PENDING":
       default:
@@ -265,15 +265,19 @@ export function SwapSheet({
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => declineMutation.mutate(swap.id)}
-                            isLoading={declineMutation.isPending}
-                            title="Decline"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </Button>
+                          <SimpleTooltip content="Decline swap proposal">
+                            <span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => declineMutation.mutate(swap.id)}
+                                isLoading={declineMutation.isPending}
+                                aria-label="Decline"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </Button>
+                            </span>
+                          </SimpleTooltip>
                           <Button
                             variant="primary"
                             size="sm"

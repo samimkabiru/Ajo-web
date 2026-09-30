@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 import { Sun, Moon, Laptop } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { SimpleTooltip } from "@/components/ui/tooltip";
 
 interface ThemeToggleProps {
   className?: string;
@@ -36,16 +37,16 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
   const isDark = resolvedTheme === "dark";
 
   return (
-    <button
-      type="button"
-      onClick={() => setTheme(isDark ? "light" : "dark")}
-      title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      aria-label="Toggle theme mode"
-      className={cn(
-        "relative w-8 h-8 rounded-[8px] flex items-center justify-center text-muted hover:text-ink hover:bg-canvas transition-colors touch-press select-none border border-transparent hover:border-line/60",
-        className
-      )}
-    >
+    <SimpleTooltip content={isDark ? "Switch to light mode" : "Switch to dark mode"}>
+      <button
+        type="button"
+        onClick={() => setTheme(isDark ? "light" : "dark")}
+        aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+        className={cn(
+          "relative w-8 h-8 rounded-[8px] flex items-center justify-center text-muted hover:text-ink hover:bg-canvas transition-colors touch-press select-none border border-transparent hover:border-line/60",
+          className
+        )}
+      >
       <AnimatePresence mode="wait" initial={false}>
         {isDark ? (
           <motion.div
@@ -71,7 +72,8 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
           </motion.div>
         )}
       </AnimatePresence>
-    </button>
+      </button>
+    </SimpleTooltip>
   );
 }
 
@@ -111,27 +113,28 @@ export function ThemeSegmentedToggle({ className }: { className?: string }) {
         const Icon = opt.icon;
         const isActive = theme === opt.value;
         return (
-          <button
-            key={opt.value}
-            type="button"
-            onClick={() => setTheme(opt.value)}
-            className={cn(
-              "relative flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-[7px] text-xs font-semibold transition-colors duration-150 touch-press",
-              isActive ? "text-ink font-bold" : "text-muted hover:text-ink"
-            )}
-            title={`${opt.label} theme`}
-            aria-pressed={isActive}
-          >
-            {isActive && (
-              <motion.span
-                layoutId="activeThemeSegmentPill"
-                className="absolute inset-0 rounded-[7px] bg-surface shadow-xs border border-line/60 z-0"
-                transition={{ type: "spring", stiffness: 450, damping: 35 }}
-              />
-            )}
-            <Icon className="w-3.5 h-3.5 relative z-10" />
-            <span className="relative z-10 hidden sm:inline text-[11px]">{opt.label}</span>
-          </button>
+          <SimpleTooltip key={opt.value} content={`${opt.label} theme`}>
+            <button
+              type="button"
+              onClick={() => setTheme(opt.value)}
+              className={cn(
+                "relative flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-[7px] text-xs font-semibold transition-colors duration-150 touch-press",
+                isActive ? "text-ink font-bold" : "text-muted hover:text-ink"
+              )}
+              aria-label={`${opt.label} theme`}
+              aria-pressed={isActive}
+            >
+              {isActive && (
+                <motion.span
+                  layoutId="activeThemeSegmentPill"
+                  className="absolute inset-0 rounded-[7px] bg-surface shadow-xs border border-line/60 z-0"
+                  transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                />
+              )}
+              <Icon className="w-3.5 h-3.5 relative z-10" />
+              <span className="relative z-10 hidden sm:inline text-[11px]">{opt.label}</span>
+            </button>
+          </SimpleTooltip>
         );
       })}
     </div>

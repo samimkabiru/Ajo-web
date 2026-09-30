@@ -4,6 +4,7 @@ import * as React from "react";
 import { Calendar as CalendarIcon, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { SimpleTooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 interface DatePickerProps {
@@ -71,17 +72,19 @@ export function DatePicker({
         </PopoverTrigger>
 
         {value && !disabled && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onChange("");
-            }}
-            className="absolute right-2.5 p-1 rounded-full text-muted hover:text-ink hover:bg-canvas dark:hover:bg-white/10 transition-colors touch-press"
-            title="Clear date"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
+          <SimpleTooltip content="Clear date">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange("");
+              }}
+              className="absolute right-2.5 p-1 rounded-full text-muted hover:text-ink hover:bg-canvas dark:hover:bg-white/10 transition-colors touch-press"
+              aria-label="Clear date"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </SimpleTooltip>
         )}
       </div>
 

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Modal } from "@/components/ui/modal";
 import { Badge } from "@/components/ui/badge";
+import { SimpleTooltip } from "@/components/ui/tooltip";
 import {
   apiGetParticipantExposure,
   apiGetParticipantContributions,
@@ -213,9 +214,11 @@ export function ParticipantHistoryModal({
                         +{formatKobo(c.amountKobo)}
                       </span>
                       {c.ledgerTransactionId && (
-                        <span className="text-[10px] text-muted font-mono" title={c.ledgerTransactionId}>
-                          Tx: {c.ledgerTransactionId.slice(0, 8)}...
-                        </span>
+                        <SimpleTooltip content={`Tx ID: ${c.ledgerTransactionId}`}>
+                          <span className="text-[10px] text-muted font-mono cursor-help">
+                            Tx: {c.ledgerTransactionId.slice(0, 8)}...
+                          </span>
+                        </SimpleTooltip>
                       )}
                     </div>
                   </div>

@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/context/auth-context";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
+import { SimpleTooltip } from "@/components/ui/tooltip";
 import { ThemeToggle } from "@/components/common/theme-toggle";
 import {
   Users,
@@ -77,7 +78,9 @@ export function NavHeader() {
                 <span className="font-heading font-extrabold text-lg tracking-tight text-ink">
                   Ajo
                 </span>
-                <span className="w-1.5 h-1.5 rounded-full bg-positive" title="Online" />
+                <SimpleTooltip content="System Online">
+                  <span className="w-1.5 h-1.5 rounded-full bg-positive cursor-default" />
+                </SimpleTooltip>
               </div>
             </Link>
 
@@ -119,28 +122,29 @@ export function NavHeader() {
           <div className="flex items-center gap-2 sm:gap-2.5">
             <ThemeToggle />
 
-            <Link
-              href="/verify-phone"
-              title={isPhoneVerified ? "Phone verified" : "Click to verify phone"}
-              className={cn(
-                "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all touch-press",
-                isPhoneVerified
-                  ? "bg-positive/10 text-positive border border-positive/25 hover:bg-positive/15 dark:bg-emerald-400/15 dark:text-emerald-300 dark:border-emerald-400/35 dark:shadow-[0_0_10px_rgba(52,211,153,0.18)]"
-                  : "bg-warning/10 text-warning border border-warning/25 hover:bg-warning/15 animate-pulse dark:bg-amber-400/15 dark:text-amber-300 dark:border-amber-400/35 dark:shadow-[0_0_10px_rgba(251,191,36,0.18)]"
-              )}
-            >
-              {isPhoneVerified ? (
-                <>
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Verified</span>
-                </>
-              ) : (
-                <>
-                  <ShieldAlert className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Verify Phone</span>
-                </>
-              )}
-            </Link>
+            <SimpleTooltip content={isPhoneVerified ? "Phone verified and active" : "Verification required to create or join circles"}>
+              <Link
+                href="/verify-phone"
+                className={cn(
+                  "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all touch-press",
+                  isPhoneVerified
+                    ? "bg-positive/10 text-positive border border-positive/25 hover:bg-positive/15 dark:bg-emerald-400/15 dark:text-emerald-300 dark:border-emerald-400/35 dark:shadow-[0_0_10px_rgba(52,211,153,0.18)]"
+                    : "bg-[#FAF7F2] text-[#92400E] border border-[#EBE1D0] hover:bg-amber-100/60 dark:bg-amber-400/15 dark:text-amber-300 dark:border-amber-400/35"
+                )}
+              >
+                {isPhoneVerified ? (
+                  <>
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Verified</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldAlert className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Verify Phone</span>
+                  </>
+                )}
+              </Link>
+            </SimpleTooltip>
 
             {/* User Profile & Logout */}
             <div className="flex items-center gap-2 pl-1 border-l border-line/60">
@@ -150,14 +154,16 @@ export function NavHeader() {
               <span className="text-xs font-bold text-ink hidden md:inline truncate max-w-[120px]">
                 {user.fullName.split(" ")[0]}
               </span>
-              <button
-                type="button"
-                onClick={() => setIsLogoutModalOpen(true)}
-                title="Log out"
-                className="p-1.5 text-muted hover:text-danger rounded-[7px] hover:bg-canvas transition-colors touch-press"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-              </button>
+              <SimpleTooltip content="Sign out of Ajo">
+                <button
+                  type="button"
+                  onClick={() => setIsLogoutModalOpen(true)}
+                  className="p-1.5 text-muted hover:text-danger rounded-[7px] hover:bg-canvas transition-colors touch-press"
+                  aria-label="Sign out"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </SimpleTooltip>
             </div>
           </div>
         </div>

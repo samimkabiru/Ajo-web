@@ -5,6 +5,7 @@ import { QueryProvider } from "@/providers/query-provider";
 import { AuthProvider } from "@/context/auth-context";
 import { ColdStartProvider } from "@/components/common/cold-start-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { TooltipProvider, GlobalTooltipSuppressor } from "@/components/ui/tooltip";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -54,7 +55,10 @@ export default function RootLayout({
           <QueryProvider>
             <AuthProvider>
               <ColdStartProvider>
-                {children}
+                <TooltipProvider delayDuration={150}>
+                  <GlobalTooltipSuppressor />
+                  {children}
+                </TooltipProvider>
               </ColdStartProvider>
             </AuthProvider>
           </QueryProvider>
