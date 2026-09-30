@@ -37,13 +37,6 @@ export function ConfirmationModal({
   return (
     <Modal isOpen={isOpen} onClose={isLoading ? () => {} : onClose} title={title} description={description}>
       <div className="space-y-4 pt-1">
-        {/* Optional icon badge or warning banner if children not provided */}
-        {icon && (
-          <div className="w-11 h-11 rounded-2xl bg-danger/10 text-danger dark:bg-rose-500/15 dark:text-rose-400 flex items-center justify-center mb-1">
-            {icon}
-          </div>
-        )}
-
         {children}
 
         {/* Action Buttons */}
@@ -64,8 +57,14 @@ export function ConfirmationModal({
             isLoading={isLoading}
             loadingText={loadingText}
             disabled={isLoading}
+            className="gap-1.5"
           >
-            {confirmText}
+            {!isLoading && icon && (
+              <span className="shrink-0 inline-flex items-center [&>svg]:w-4 [&>svg]:h-4 [&>svg]:stroke-[2.2]">
+                {icon}
+              </span>
+            )}
+            <span>{confirmText}</span>
           </Button>
         </div>
       </div>

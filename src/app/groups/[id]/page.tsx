@@ -754,7 +754,7 @@ export default function GroupDetailPage() {
           variant="danger"
           isLoading={removeMemberMutation.isPending}
           loadingText="Removing..."
-          icon={<Trash2 className="w-5 h-5 text-danger" />}
+          icon={<Trash2 className="w-4 h-4" />}
         >
           <div className="space-y-3">
             <p className="text-sm text-ink font-medium">
@@ -776,7 +776,7 @@ export default function GroupDetailPage() {
           variant="danger"
           isLoading={leaveGroupMutation.isPending}
           loadingText="Leaving..."
-          icon={<LogOut className="w-5 h-5 text-danger" />}
+          icon={<LogOut className="w-4 h-4" />}
         >
           <div className="space-y-3">
             <p className="text-sm text-ink font-medium">
@@ -802,7 +802,7 @@ export default function GroupDetailPage() {
           variant="danger"
           isLoading={revokeInviteMutation.isPending}
           loadingText="Revoking..."
-          icon={<Trash2 className="w-5 h-5 text-danger" />}
+          icon={<Trash2 className="w-4 h-4" />}
         >
           <div className="space-y-3">
             <p className="text-sm text-ink font-medium">

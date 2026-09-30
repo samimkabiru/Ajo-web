@@ -1330,7 +1330,7 @@ export default function RoundDetailPage() {
           variant="danger"
           isLoading={removeParticipantMutation.isPending}
           loadingText="Removing..."
-          icon={<UserX className="w-5 h-5 text-danger" />}
+          icon={<UserX className="w-4 h-4" />}
         >
           <div className="space-y-3">
             <p className="text-sm text-ink font-medium">
@@ -1352,7 +1352,7 @@ export default function RoundDetailPage() {
           variant="danger"
           isLoading={leaveRoundMutation.isPending}
           loadingText="Leaving..."
-          icon={<UserX className="w-5 h-5 text-danger" />}
+          icon={<UserX className="w-4 h-4" />}
         >
           <div className="space-y-3">
             <p className="text-sm text-ink font-medium">
