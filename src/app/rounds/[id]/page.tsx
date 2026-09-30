@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CardSkeleton, Skeleton } from "@/components/ui/skeleton";
 import { Modal } from "@/components/ui/modal";
+import { ConfirmationModal } from "@/components/ui/confirmation-modal";
 import {
   Select,
   SelectContent,
@@ -112,6 +113,10 @@ export default function RoundDetailPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [selectedParticipantForHistory, setSelectedParticipantForHistory] = useState<ParticipantSummary | null>(null);
   const [activeViewTab, setActiveViewTab] = useState<"cycles" | "ledger">("cycles");
+
+  // Confirmation modal states
+  const [participantToRemove, setParticipantToRemove] = useState<ParticipantSummary | null>(null);
+  const [isLeaveRoundModalOpen, setIsLeaveRoundModalOpen] = useState(false);
 
   // Round detail
   const {
@@ -245,6 +250,7 @@ export default function RoundDetailPage() {
     mutationFn: () => apiLeaveRound(roundId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["round", roundId] });
+      setIsLeaveRoundModalOpen(false);
       setActionError(null);
     },
     onError: (err) => {
@@ -269,6 +275,7 @@ export default function RoundDetailPage() {
     mutationFn: (userId: string) => apiRemoveParticipant(roundId, userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["round", roundId] });
+      setParticipantToRemove(null);
       setActionError(null);
     },
     onError: (err) => {
@@ -418,8 +425,7 @@ export default function RoundDetailPage() {
                         {myParticipant && (
                           <DropdownMenuItem
                             variant="danger"
-                            onClick={() => leaveRoundMutation.mutate()}
-                            disabled={leaveRoundMutation.isPending}
+                            onClick={() => setIsLeaveRoundModalOpen(true)}
                           >
                             <UserX className="w-3.5 h-3.5 mr-1" />
                             <span>Leave Round</span>
@@ -580,7 +586,7 @@ export default function RoundDetailPage() {
                         </button>
                         {isAdmin && (
                           <button
-                            onClick={() => removeParticipantMutation.mutate(p.user.id)}
+                            onClick={() => setParticipantToRemove(p)}
                             title="Remove participant"
                             className="p-1.5 text-muted hover:text-danger rounded-lg transition-colors touch-press"
                           >
@@ -1309,6 +1315,54 @@ export default function RoundDetailPage() {
           participant={selectedParticipantForHistory}
           roundStatus={round.status}
         />
+
+        {/* Modal: Remove Participant from Round */}
+        <ConfirmationModal
+          isOpen={!!participantToRemove}
+          onClose={() => setParticipantToRemove(null)}
+          onConfirm={() => {
+            if (participantToRemove) {
+              removeParticipantMutation.mutate(participantToRemove.user.id);
+            }
+          }}
+          title="Remove Participant from Round"
+          confirmText="Remove Participant"
+          variant="danger"
+          isLoading={removeParticipantMutation.isPending}
+          loadingText="Removing..."
+          icon={<UserX className="w-5 h-5 text-danger" />}
+        >
+          <div className="space-y-3">
+            <p className="text-sm text-ink font-medium">
+              Remove <strong className="text-ink font-bold">{participantToRemove?.user.fullName}</strong> from Slot #{participantToRemove?.position}?
+            </p>
+            <div className="p-3.5 rounded-xl bg-danger/10 border border-danger/20 text-xs text-muted leading-relaxed">
+              This member will be unassigned from payout slot #{participantToRemove?.position}. Their slot will become vacant and open for other circle members to claim before the round begins.
+            </div>
+          </div>
+        </ConfirmationModal>
+
+        {/* Modal: Leave Round Confirmation */}
+        <ConfirmationModal
+          isOpen={isLeaveRoundModalOpen}
+          onClose={() => setIsLeaveRoundModalOpen(false)}
+          onConfirm={() => leaveRoundMutation.mutate()}
+          title="Leave Round"
+          confirmText="Leave Round"
+          variant="danger"
+          isLoading={leaveRoundMutation.isPending}
+          loadingText="Leaving..."
+          icon={<UserX className="w-5 h-5 text-danger" />}
+        >
+          <div className="space-y-3">
+            <p className="text-sm text-ink font-medium">
+              Are you sure you want to leave this savings round?
+            </p>
+            <div className="p-3.5 rounded-xl bg-danger/10 border border-danger/20 text-xs text-muted leading-relaxed">
+              Your assigned payout position (Slot #{myParticipant?.position || 1}) will be released back to the circle. You can rejoin before this round activates if positions remain available.
+            </div>
+          </div>
+        </ConfirmationModal>
       </div>
     </AuthenticatedLayout>
   );

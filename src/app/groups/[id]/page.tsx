@@ -18,6 +18,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
+import { ConfirmationModal } from "@/components/ui/confirmation-modal";
 import { Badge, RoundStatusBadge } from "@/components/ui/badge";
 import { CardSkeleton, Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -64,6 +65,11 @@ export default function GroupDetailPage() {
   const [contributionNaira, setContributionNaira] = useState("20,000");
   const [firstPayoutDate, setFirstPayoutDate] = useState("");
   const [roundError, setRoundError] = useState<string | null>(null);
+
+  // Confirmation modal states
+  const [memberToRemove, setMemberToRemove] = useState<{ id: string; fullName: string } | null>(null);
+  const [isLeaveGroupModalOpen, setIsLeaveGroupModalOpen] = useState(false);
+  const [inviteToRevoke, setInviteToRevoke] = useState<{ id: string; phone: string } | null>(null);
 
   // Group Details
   const {
@@ -130,6 +136,7 @@ export default function GroupDetailPage() {
     mutationFn: (inviteId: string) => apiRevokeInvite(inviteId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["group", groupId] });
+      setInviteToRevoke(null);
     },
   });
 
@@ -137,6 +144,7 @@ export default function GroupDetailPage() {
     mutationFn: (userId: string) => apiRemoveGroupMember(groupId, userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["group", groupId] });
+      setMemberToRemove(null);
     },
   });
 
@@ -144,6 +152,7 @@ export default function GroupDetailPage() {
     mutationFn: () => apiLeaveGroup(groupId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["groups"] });
+      setIsLeaveGroupModalOpen(false);
       router.push("/groups");
     },
   });
@@ -261,13 +270,7 @@ export default function GroupDetailPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => {
-                    if (confirm("Are you sure you want to leave this circle?")) {
-                      leaveGroupMutation.mutate();
-                    }
-                  }}
-                  isLoading={leaveGroupMutation.isPending}
-                  loadingText="Leaving..."
+                  onClick={() => setIsLeaveGroupModalOpen(true)}
                   className="text-muted hover:text-danger hover:bg-danger/8 text-xs font-medium transition-colors"
                 >
                   <LogOut className="w-4 h-4 mr-1.5" />
@@ -517,11 +520,7 @@ export default function GroupDetailPage() {
 
                       {isAdmin && memberId !== user?.id && (
                         <button
-                          onClick={() => {
-                            if (confirm(`Remove ${member.user.fullName} from this circle?`)) {
-                              removeMemberMutation.mutate(memberId);
-                            }
-                          }}
+                          onClick={() => setMemberToRemove({ id: memberId, fullName: member.user.fullName })}
                           title="Remove member"
                           className="p-1.5 text-muted hover:text-danger rounded-lg transition-colors touch-press"
                         >
@@ -582,7 +581,7 @@ export default function GroupDetailPage() {
                       <div className="flex items-center gap-2">
                         <Badge variant="warning">Pending</Badge>
                         <button
-                          onClick={() => revokeInviteMutation.mutate(invite.id)}
+                          onClick={() => setInviteToRevoke({ id: invite.id, phone: invite.phone })}
                           title="Revoke invitation"
                           className="p-1.5 text-muted hover:text-danger rounded-lg transition-colors touch-press"
                         >
@@ -740,6 +739,80 @@ export default function GroupDetailPage() {
             initialDescription={group.description}
           />
         )}
+
+        {/* Modal: Remove Member Confirmation */}
+        <ConfirmationModal
+          isOpen={!!memberToRemove}
+          onClose={() => setMemberToRemove(null)}
+          onConfirm={() => {
+            if (memberToRemove) {
+              removeMemberMutation.mutate(memberToRemove.id);
+            }
+          }}
+          title="Remove Member from Circle"
+          confirmText="Remove Member"
+          variant="danger"
+          isLoading={removeMemberMutation.isPending}
+          loadingText="Removing..."
+          icon={<Trash2 className="w-5 h-5 text-danger" />}
+        >
+          <div className="space-y-3">
+            <p className="text-sm text-ink font-medium">
+              Are you sure you want to remove <strong className="text-ink font-bold">{memberToRemove?.fullName}</strong> from <strong>{group?.name || "this circle"}</strong>?
+            </p>
+            <div className="p-3.5 rounded-xl bg-danger/10 border border-danger/20 text-xs text-muted leading-relaxed">
+              This member will immediately lose access to this circle and all future savings rounds. Their historical contributions in completed rounds remain recorded on the ledger.
+            </div>
+          </div>
+        </ConfirmationModal>
+
+        {/* Modal: Leave Circle Confirmation */}
+        <ConfirmationModal
+          isOpen={isLeaveGroupModalOpen}
+          onClose={() => setIsLeaveGroupModalOpen(false)}
+          onConfirm={() => leaveGroupMutation.mutate()}
+          title="Leave Circle"
+          confirmText="Leave Circle"
+          variant="danger"
+          isLoading={leaveGroupMutation.isPending}
+          loadingText="Leaving..."
+          icon={<LogOut className="w-5 h-5 text-danger" />}
+        >
+          <div className="space-y-3">
+            <p className="text-sm text-ink font-medium">
+              Are you sure you want to leave <strong className="text-ink font-bold">{group?.name || "this circle"}</strong>?
+            </p>
+            <div className="p-3.5 rounded-xl bg-danger/10 border border-danger/20 text-xs text-muted leading-relaxed">
+              You will no longer have access to this circle or be able to join its upcoming savings rounds unless an admin re-invites you.
+            </div>
+          </div>
+        </ConfirmationModal>
+
+        {/* Modal: Revoke Invite Confirmation */}
+        <ConfirmationModal
+          isOpen={!!inviteToRevoke}
+          onClose={() => setInviteToRevoke(null)}
+          onConfirm={() => {
+            if (inviteToRevoke) {
+              revokeInviteMutation.mutate(inviteToRevoke.id);
+            }
+          }}
+          title="Revoke Invitation"
+          confirmText="Revoke Invite"
+          variant="danger"
+          isLoading={revokeInviteMutation.isPending}
+          loadingText="Revoking..."
+          icon={<Trash2 className="w-5 h-5 text-danger" />}
+        >
+          <div className="space-y-3">
+            <p className="text-sm text-ink font-medium">
+              Revoke invitation sent to <strong className="text-ink font-bold tabular-nums">{inviteToRevoke?.phone}</strong>?
+            </p>
+            <div className="p-3.5 rounded-xl bg-danger/10 border border-danger/20 text-xs text-muted leading-relaxed">
+              This invitation link will be invalidated immediately. If the user tries to accept, they will be notified that the invitation is no longer active.
+            </div>
+          </div>
+        </ConfirmationModal>
       </div>
     </AuthenticatedLayout>
   );
