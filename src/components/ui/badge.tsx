@@ -20,16 +20,16 @@ const badgeVariants = cva(
           "dark:bg-green-400/15 dark:text-green-300 dark:border-green-400/32",
 
         warning:
-          "bg-amber-50 text-amber-700 border border-amber-200 " +
-          "dark:bg-amber-400/15 dark:text-amber-300 dark:border-amber-400/32",
+          "bg-[#FDFBF7] text-[#92400E] border border-[#EFE5D5] " +
+          "dark:bg-amber-500/12 dark:text-amber-300 dark:border-amber-500/22",
 
         danger:
           "bg-red-50 text-red-700 border border-red-200 " +
           "dark:bg-rose-400/15 dark:text-rose-300 dark:border-rose-400/32",
 
         accent:
-          "bg-amber-50 text-amber-700 border border-amber-200 " +
-          "dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-400/32",
+          "bg-[#FAF7F2] text-[#92400E] border border-[#EBE1D0] " +
+          "dark:bg-amber-500/12 dark:text-amber-300 dark:border-amber-500/22",
 
         neutral:
           "bg-[#F9FAFB] text-[#6B7280] border border-[#E5E7EB] " +

@@ -25,6 +25,13 @@ import { AuthenticatedLayout } from "@/components/common/authenticated-layout";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge, RoundStatusBadge, CycleStatusBadge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { CardSkeleton, Skeleton } from "@/components/ui/skeleton";
 import { Modal } from "@/components/ui/modal";
 import {
@@ -79,6 +86,7 @@ import {
   Eye,
   CalendarDays,
   FileText,
+  MoreVertical,
 } from "lucide-react";
 
 export default function RoundDetailPage() {
@@ -343,22 +351,10 @@ export default function RoundDetailPage() {
             </div>
 
             {/* Top actions */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               {round.status === "FORMING" && (
                 <>
-                  {myParticipant ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => leaveRoundMutation.mutate()}
-                      isLoading={leaveRoundMutation.isPending}
-                      loadingText="Leaving..."
-                      className="text-muted hover:text-danger hover:bg-danger/8 text-xs font-medium transition-colors"
-                    >
-                      <UserX className="w-3.5 h-3.5 mr-1.5" />
-                      Leave Round
-                    </Button>
-                  ) : (
+                  {!myParticipant && (
                     <Button
                       variant="primary"
                       size="sm"
@@ -372,43 +368,78 @@ export default function RoundDetailPage() {
                   )}
 
                   {isAdmin && (
-                    <>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setActionError(null);
-                          setIsEditRoundTermsOpen(true);
-                        }}
-                      >
-                        <Sliders className="w-3.5 h-3.5 mr-1.5" />
-                        Edit Terms
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setActionError(null);
-                          setIsCancelConfirmOpen(true);
-                        }}
-                        className="text-muted hover:text-danger hover:bg-danger/8 text-xs font-medium transition-colors"
-                      >
-                        <XCircle className="w-3.5 h-3.5 mr-1.5" />
-                        Cancel Round
-                      </Button>
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={() => {
-                          setActionError(null);
-                          setIsActivateConfirmOpen(true);
-                        }}
-                        disabled={round.participants.length < 2}
-                      >
-                        <Play className="w-3.5 h-3.5 mr-1.5 fill-current" />
-                        Activate Round
-                      </Button>
-                    </>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => {
+                        setActionError(null);
+                        setIsActivateConfirmOpen(true);
+                      }}
+                      disabled={round.participants.length < 2}
+                      title={
+                        round.participants.length < 2
+                          ? "At least 2 participants required to activate"
+                          : "Activate round and begin cycle rotation"
+                      }
+                    >
+                      <Play className="w-3.5 h-3.5 mr-1.5 fill-current" />
+                      Activate Round
+                    </Button>
+                  )}
+
+                  {(isAdmin || myParticipant) && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1.5 text-xs font-semibold text-muted hover:text-ink shadow-xs"
+                          aria-label="Manage round options"
+                        >
+                          <MoreVertical className="w-3.5 h-3.5 text-muted" />
+                          <span>Manage</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {isAdmin && (
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setActionError(null);
+                              setIsEditRoundTermsOpen(true);
+                            }}
+                          >
+                            <Sliders className="w-3.5 h-3.5 mr-1 text-muted" />
+                            <span>Edit Terms</span>
+                          </DropdownMenuItem>
+                        )}
+
+                        {isAdmin && myParticipant && <DropdownMenuSeparator />}
+
+                        {myParticipant && (
+                          <DropdownMenuItem
+                            variant="danger"
+                            onClick={() => leaveRoundMutation.mutate()}
+                            disabled={leaveRoundMutation.isPending}
+                          >
+                            <UserX className="w-3.5 h-3.5 mr-1" />
+                            <span>Leave Round</span>
+                          </DropdownMenuItem>
+                        )}
+
+                        {isAdmin && (
+                          <DropdownMenuItem
+                            variant="danger"
+                            onClick={() => {
+                              setActionError(null);
+                              setIsCancelConfirmOpen(true);
+                            }}
+                          >
+                            <XCircle className="w-3.5 h-3.5 mr-1" />
+                            <span>Cancel Round</span>
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   )}
                 </>
               )}
@@ -420,18 +451,32 @@ export default function RoundDetailPage() {
                     size="sm"
                     onClick={() => setIsSwapOpen(true)}
                   >
-                    <ArrowLeftRight className="w-3.5 h-3.5 mr-1" />
+                    <ArrowLeftRight className="w-3.5 h-3.5 mr-1.5" />
                     Swap Slot
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsExitOpen(true)}
-                    className="text-muted hover:text-danger"
-                  >
-                    <LogOut className="w-3.5 h-3.5 mr-1" />
-                    Exit Round
-                  </Button>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5 text-xs font-semibold text-muted hover:text-ink shadow-xs"
+                        aria-label="Round options"
+                      >
+                        <MoreVertical className="w-3.5 h-3.5 text-muted" />
+                        <span>Manage</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        variant="danger"
+                        onClick={() => setIsExitOpen(true)}
+                      >
+                        <LogOut className="w-3.5 h-3.5 mr-1" />
+                        <span>Exit Round</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </>
               )}
             </div>

@@ -81,23 +81,23 @@ export default function DashboardPage() {
 
         {/* Pending Invites Alert Banner */}
         {pendingInvites.length > 0 && (
-          <div className="p-4 rounded-[12px] bg-accent-tint border border-accent/30 dark:bg-amber-500/10 dark:border-amber-500/30 flex items-center justify-between gap-4 shadow-subtle dark:shadow-[0_0_20px_rgba(245,158,11,0.12)]">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-accent text-white flex items-center justify-center shrink-0 dark:shadow-[0_0_12px_rgba(245,158,11,0.35)]">
+          <div className="p-4 rounded-[14px] bg-[#FAF8F5] dark:bg-[#161A24] border border-[#EBE3D5] dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-subtle">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-700 dark:bg-amber-400/15 dark:text-amber-300 flex items-center justify-center shrink-0 border border-amber-500/20">
                 <Mail className="w-5 h-5" />
               </div>
               <div>
                 <h4 className="font-heading font-bold text-sm text-ink">
                   You have {pendingInvites.length} pending circle {pendingInvites.length === 1 ? "invitation" : "invitations"}
                 </h4>
-                <p className="text-xs text-muted">
-                  From {pendingInvites[0].invitedBy?.fullName || "a friend"} to join &quot;{pendingInvites[0].groupName || "Circle"}&quot;
+                <p className="text-xs text-muted mt-0.5">
+                  From <strong className="text-ink font-semibold">{pendingInvites[0].invitedBy?.fullName || "a friend"}</strong> to join &quot;{pendingInvites[0].groupName || "Circle"}&quot;
                 </p>
               </div>
             </div>
 
-            <Link href="/invites">
-              <Button variant="accent" size="sm">
+            <Link href="/invites" className="shrink-0 self-start sm:self-auto">
+              <Button variant="primary" size="sm">
                 Review Invites
               </Button>
             </Link>

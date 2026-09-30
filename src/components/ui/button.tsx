@@ -6,7 +6,7 @@ import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center font-semibold tracking-tight transition-all duration-150 disabled:opacity-40 disabled:pointer-events-none select-none cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/30 relative overflow-hidden",
+  "inline-flex items-center justify-center font-semibold tracking-tight whitespace-nowrap transition-all duration-150 disabled:opacity-40 disabled:pointer-events-none select-none cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/30 relative overflow-hidden",
   {
     variants: {
       variant: {
@@ -24,14 +24,15 @@ const buttonVariants = cva(
           "dark:hover:from-[#6366F1] dark:hover:to-[#4F46E5] " +
           "dark:active:from-[#3730A3] dark:active:to-[#312E81]",
 
-        /* ── Accent: warm amber ─────────────────────────────────────── */
+        /* ── Accent: warm honey / champagne (toned down, not blinding) ─ */
         accent:
-          "bg-gradient-to-b from-[#F59E0B] to-[#D97706] text-white " +
-          "shadow-[0_1px_2px_rgba(0,0,0,0.10),inset_0_1px_0_rgba(255,255,255,0.22)] " +
-          "border border-[#B45309] " +
-          "hover:from-[#FBBF24] hover:to-[#F59E0B] " +
-          "active:from-[#D97706] active:to-[#B45309] active:translate-y-[0.5px] " +
-          "dark:shadow-[0_1px_2px_rgba(0,0,0,0.50),inset_0_1px_0_rgba(255,255,255,0.14),0_0_16px_rgba(251,191,36,0.20)]",
+          "bg-gradient-to-b from-[#D97706] to-[#B45309] text-white " +
+          "shadow-[0_1px_2px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.16)] " +
+          "border border-[#92400E] " +
+          "hover:from-[#E5830C] hover:to-[#BD5B0B] " +
+          "active:from-[#B45309] active:to-[#92400E] active:translate-y-[0.5px] " +
+          "dark:from-[#B45309] dark:to-[#92400E] dark:border-amber-700/60 " +
+          "dark:shadow-[0_1px_2px_rgba(0,0,0,0.50),inset_0_1px_0_rgba(255,255,255,0.12),0_0_14px_rgba(217,119,6,0.18)]",
 
         /* ── Secondary: indigo tint ─────────────────────────────────── */
         secondary:
