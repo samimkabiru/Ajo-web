@@ -670,7 +670,7 @@ export default function RoundDetailPage() {
                             : "text-muted"
                         }`}
                       >
-                        {formatSignedKobo(myExposure.exposureKobo).text}
+                        {formatSignedKobo(myExposure).text}
                       </div>
                       <p className="text-xs text-muted leading-relaxed">
                         {myExposure.owedByGroup
@@ -1255,6 +1255,11 @@ export default function RoundDetailPage() {
             onSuccess={() => {
               refetchPayout();
               refetchRound();
+              queryClient.invalidateQueries({ queryKey: ["pool-balance", roundId] });
+            }}
+            onConflict={() => {
+              refetchRound();
+              refetchPayout();
               queryClient.invalidateQueries({ queryKey: ["pool-balance", roundId] });
             }}
           />

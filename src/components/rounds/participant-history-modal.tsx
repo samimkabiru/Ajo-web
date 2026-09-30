@@ -130,7 +130,7 @@ export function ParticipantHistoryModal({
                   : "text-muted"
               }`}
             >
-              {formatSignedKobo(exposure.exposureKobo).text}
+              {formatSignedKobo(exposure, { subject: "member", memberName: participant.user.fullName }).text}
             </div>
             <p className="text-xs text-muted">
               {exposure.owedByGroup

@@ -39,7 +39,7 @@ export function ContributeSheet({
   members = [],
 }: ContributeSheetProps) {
   // Generate and hold idempotency key when the sheet opens (user intent forms)
-  const { key, initIntent, resetIntent } = useIdempotencyKey();
+  const { key, initIntent, rotateKey, resetIntent } = useIdempotencyKey();
 
   const [method, setMethod] = useState<PaymentMethod>("ONLINE");
   const [selectedUserId, setSelectedUserId] = useState<string>("");
@@ -88,6 +88,7 @@ export function ContributeSheet({
       }
 
       setIsSuccess(true);
+      rotateKey();
       onSuccess();
       setTimeout(() => {
         onClose();

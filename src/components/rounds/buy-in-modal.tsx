@@ -32,7 +32,7 @@ export function BuyInModal({
   eligibleReplacements,
   onSuccess,
 }: BuyInModalProps) {
-  const { key, initIntent, resetIntent } = useIdempotencyKey();
+  const { key, initIntent, rotateKey, resetIntent } = useIdempotencyKey();
 
   const [replacementUserId, setReplacementUserId] = useState<string>("");
   const [method, setMethod] = useState<PaymentMethod>("ONLINE");
@@ -85,6 +85,7 @@ export function BuyInModal({
         key
       );
 
+      rotateKey();
       onSuccess();
       onClose();
     } catch (err) {

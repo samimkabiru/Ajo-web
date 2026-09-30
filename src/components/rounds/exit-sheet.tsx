@@ -33,7 +33,7 @@ export function ExitSheet({
   participantId,
 }: ExitSheetProps) {
   const queryClient = useQueryClient();
-  const { key, initIntent, resetIntent } = useIdempotencyKey();
+  const { key, initIntent, rotateKey, resetIntent } = useIdempotencyKey();
 
   const [repayAmountNaira, setRepayAmountNaira] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -112,6 +112,7 @@ export function ExitSheet({
       setSuccessMsg("Repayment recorded on the ledger.");
       setRepayAmountNaira("");
       setErrorMsg(null);
+      rotateKey();
     },
     onError: (err) => {
       setErrorMsg(getErrorMessage(err));
@@ -130,9 +131,9 @@ export function ExitSheet({
   };
 
   const exposureKobo = exposure?.exposureKobo || 0;
-  const isSquare = exposureKobo === 0;
-  const isOwedRefund = exposure?.owedByGroup;
-  const owesDebt = exposure?.owesGroup;
+  const isSquare = exposure ? (!exposure.owesGroup && !exposure.owedByGroup) : exposureKobo === 0;
+  const isOwedRefund = exposure ? exposure.owedByGroup : false;
+  const owesDebt = exposure ? exposure.owesGroup : false;
 
   return (
     <Modal
@@ -223,7 +224,7 @@ export function ExitSheet({
           </span>
 
           <div className="text-lg font-bold font-heading">
-            {formatSignedKobo(exposureKobo).text}
+            {formatSignedKobo(exposure).text}
           </div>
 
           {isSquare && (

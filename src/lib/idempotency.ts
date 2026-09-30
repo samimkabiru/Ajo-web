@@ -17,16 +17,26 @@ export function generateUUID(): string {
 }
 
 /**
- * Hook to manage idempotency keys per user intent.
- * SPECIFICATION RULE:
- * Generate the key when the user forms the intent (e.g. when sheet/modal opens), NOT when they click.
- * Every attempt at that action (retry, network timeout, double tap) sends the same key.
+ * Hook to manage idempotency keys per operation.
+ * SPECIFICATION RULES:
+ * 1. Key is initialized when intent is formed (e.g. when modal/sheet opens).
+ * 2. Network timeouts or retries of the SAME in-flight operation send the same key.
+ * 3. After every SUCCESSFUL submission, rotateKey() MUST be called so that any subsequent
+ *    operation performed in the same modal session (e.g. consecutive partial repayments,
+ *    admin recording cash for multiple members) receives a fresh unique key.
  */
 export function useIdempotencyKey(initialOpen: boolean = false) {
   const [key, setKey] = useState<string>(() => (initialOpen ? generateUUID() : ""));
   const keyRef = useRef<string>(key);
 
   const initIntent = useCallback(() => {
+    const newKey = generateUUID();
+    keyRef.current = newKey;
+    setKey(newKey);
+    return newKey;
+  }, []);
+
+  const rotateKey = useCallback(() => {
     const newKey = generateUUID();
     keyRef.current = newKey;
     setKey(newKey);
@@ -42,6 +52,7 @@ export function useIdempotencyKey(initialOpen: boolean = false) {
     key,
     keyRef,
     initIntent,
+    rotateKey,
     resetIntent,
   };
 }

@@ -22,6 +22,7 @@ interface PayoutSheetProps {
   shortfallKobo?: number;
   arrearsWithheldKobo?: number;
   onSuccess: () => void;
+  onConflict?: () => void;
 }
 
 export function PayoutSheet({
@@ -36,8 +37,9 @@ export function PayoutSheet({
   shortfallKobo = 0,
   arrearsWithheldKobo = 0,
   onSuccess,
+  onConflict,
 }: PayoutSheetProps) {
-  const { key, initIntent, resetIntent } = useIdempotencyKey();
+  const { key, initIntent, rotateKey, resetIntent } = useIdempotencyKey();
   const [method, setMethod] = useState<PaymentMethod>("ONLINE");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -81,6 +83,7 @@ export function PayoutSheet({
       }
 
       setIsSuccess(true);
+      rotateKey();
       onSuccess();
       setTimeout(() => {
         onClose();
@@ -88,9 +91,10 @@ export function PayoutSheet({
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
         setErrorMsg(
-          "The beneficiary or state for this cycle has changed (e.g. following a position swap or payout). Updating rotation schedule..."
+          "The beneficiary or rotation state for this cycle changed (e.g. following a position swap). The rotation schedule has been refreshed in the background. Please review the updated beneficiary before proceeding."
         );
-        onSuccess();
+        rotateKey();
+        onConflict?.();
       } else {
         setErrorMsg(getErrorMessage(err));
       }

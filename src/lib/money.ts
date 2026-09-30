@@ -91,21 +91,57 @@ export interface SignedKoboResult {
   amountKobo: number;
 }
 
+export type ExposureInput =
+  | number
+  | bigint
+  | null
+  | undefined
+  | {
+      exposureKobo?: number | bigint | null;
+      owesGroup?: boolean;
+      owedByGroup?: boolean;
+    };
+
 /**
- * Formats signed exposure value as human words, NEVER with a minus sign.
- * Negative exposure = group owes member.
- * Positive exposure = member owes group.
- * Zero = all square.
+ * Formats exposure value as human words, NEVER with a minus sign.
+ * Uses explicit API flags `owesGroup` and `owedByGroup` whenever available
+ * so the rendering never depends solely on the sign of exposureKobo.
+ *
+ * - owedByGroup = true: "The group owes you ₦..."
+ * - owesGroup = true: "You owe the group ₦..."
+ * - Neither / zero: "All square"
  */
 export function formatSignedKobo(
-  exposureKobo: number | bigint | null | undefined,
-  options?: { subject?: "you" | "member"; memberName?: string }
+  exposure: ExposureInput,
+  options?: {
+    subject?: "you" | "member";
+    memberName?: string;
+    owesGroup?: boolean;
+    owedByGroup?: boolean;
+  }
 ): SignedKoboResult {
-  const amount = Number(exposureKobo || 0);
+  let amount = 0;
+  let owesGroup: boolean | undefined = options?.owesGroup;
+  let owedByGroup: boolean | undefined = options?.owedByGroup;
+
+  if (exposure !== null && typeof exposure === "object") {
+    amount = Number(exposure.exposureKobo || 0);
+    if (owesGroup === undefined) owesGroup = exposure.owesGroup;
+    if (owedByGroup === undefined) owedByGroup = exposure.owedByGroup;
+  } else {
+    amount = Number(exposure || 0);
+  }
+
   const subject = options?.subject || "you";
   const memberName = options?.memberName || "This member";
 
-  if (amount === 0) {
+  // Check if all square based on explicit API flags if present, or amount === 0
+  const isSquare =
+    owesGroup !== undefined && owedByGroup !== undefined
+      ? !owesGroup && !owedByGroup
+      : amount === 0;
+
+  if (isSquare || (amount === 0 && !owesGroup && !owedByGroup)) {
     return {
       text: "All square",
       status: "square",
@@ -117,7 +153,10 @@ export function formatSignedKobo(
   const absAmount = Math.abs(amount);
   const formatted = formatKobo(absAmount);
 
-  if (amount < 0) {
+  // Direction strictly determined by API's owedByGroup / owesGroup flags
+  const isOwed = owedByGroup !== undefined ? owedByGroup : amount < 0;
+
+  if (isOwed) {
     // Group owes member
     const text =
       subject === "you"
