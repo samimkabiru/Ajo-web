@@ -1289,6 +1289,7 @@ export default function RoundDetailPage() {
             contributionAmountKobo={round.contributionAmountKobo}
             isAdmin={isAdmin}
             members={group?.members}
+            currentUserId={user?.id}
             onSuccess={() => {
               refetchContributions();
               refetchRound();

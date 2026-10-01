@@ -12,9 +12,11 @@ import {
 } from "@/components/ui/select";
 import { useIdempotencyKey } from "@/lib/idempotency";
 import { formatKobo } from "@/lib/money";
+import { formatPhoneWithDashes } from "@/lib/utils";
 import { apiContribute } from "@/lib/api/endpoints";
 import { PaymentMethod, UserSummary } from "@/lib/api/types";
 import { getErrorMessage } from "@/lib/api/errors";
+import { useAuth } from "@/context/auth-context";
 import { CheckCircle2, AlertCircle, Coins, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
@@ -27,6 +29,7 @@ interface ContributeSheetProps {
   onSuccess: () => void;
   isAdmin?: boolean;
   members?: { userId: string; user: UserSummary }[];
+  currentUserId?: string;
 }
 
 export function ContributeSheet({
@@ -38,7 +41,25 @@ export function ContributeSheet({
   onSuccess,
   isAdmin = false,
   members = [],
+  currentUserId,
 }: ContributeSheetProps) {
+  const { user } = useAuth();
+  const effectiveUserId = currentUserId || user?.id;
+  const effectiveUserPhone = user?.phone ? user.phone.replace(/\D/g, "") : "";
+
+  // Filter out the currently logged-in user since "Myself" already represents them
+  const otherMembers = React.useMemo(() => {
+    return (members || []).filter((m) => {
+      const memberId = m.user?.id || (m as { userId?: string }).userId;
+      if (effectiveUserId && memberId === effectiveUserId) return false;
+      if (effectiveUserPhone && m.user?.phone) {
+        const memberPhone = m.user.phone.replace(/\D/g, "");
+        if (memberPhone && memberPhone === effectiveUserPhone) return false;
+      }
+      return true;
+    });
+  }, [members, effectiveUserId, effectiveUserPhone]);
+
   // Generate and hold idempotency key when the sheet opens (user intent forms)
   const { key, initIntent, rotateKey, resetIntent } = useIdempotencyKey();
 
@@ -151,24 +172,39 @@ export function ContributeSheet({
                     value={selectedUserId || "myself"}
                     onValueChange={(val) => setSelectedUserId(val === "myself" ? "" : val)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-auto min-h-[44px] py-2 [&>span]:line-clamp-none">
                       <SelectValue placeholder="Myself" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="myself">
-                        <span className="font-medium text-ink">Myself</span>
+                      <SelectItem value="myself" className="py-2.5">
+                        <div className="flex items-center gap-2.5 text-left">
+                          <span className="w-7 h-7 rounded-full bg-primary-tint text-primary text-[11px] font-bold flex items-center justify-center shrink-0">
+                            {user?.fullName ? user.fullName.charAt(0).toUpperCase() : "M"}
+                          </span>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-semibold text-ink leading-tight">Myself</span>
+                          </div>
+                        </div>
                       </SelectItem>
-                      {members.map((m) => {
+                      {otherMembers.map((m) => {
                         const mId = m.user?.id || (m as { userId?: string }).userId || "";
                         return (
-                          <SelectItem key={mId} value={mId}>
-                            <span className="flex items-center gap-2">
-                              <span className="w-5 h-5 rounded-full bg-primary-tint text-primary text-[10px] font-bold flex items-center justify-center shrink-0">
-                                {m.user.fullName.charAt(0).toUpperCase()}
+                          <SelectItem key={mId} value={mId} className="py-2.5">
+                            <div className="flex items-center gap-2.5 text-left">
+                              <span className="w-7 h-7 rounded-full bg-primary-tint text-primary text-[11px] font-bold flex items-center justify-center shrink-0">
+                                {m.user?.fullName ? m.user.fullName.charAt(0).toUpperCase() : "?"}
                               </span>
-                              <span className="font-medium text-ink">{m.user.fullName}</span>
-                              <span className="text-xs text-muted font-mono">({m.user.phone})</span>
-                            </span>
+                              <div className="flex flex-col text-left">
+                                <span className="text-sm font-semibold text-ink leading-tight">
+                                  {m.user?.fullName}
+                                </span>
+                                {m.user?.phone && (
+                                  <span className="text-[11px] text-muted font-mono tracking-tight mt-0.5">
+                                    {formatPhoneWithDashes(m.user.phone)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </SelectItem>
                         );
                       })}
