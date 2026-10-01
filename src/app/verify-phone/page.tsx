@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ApiError, getErrorMessage } from "@/lib/api/errors";
 import { ShieldCheck, AlertCircle, RefreshCw, Info, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function VerifyPhonePage() {
   const { user, setUser, isAuthenticated } = useAuth();
@@ -104,6 +105,9 @@ export default function VerifyPhonePage() {
       setExpiresAt(codeExpiresAt);
       setResendAvailableAt(codeResendAt);
       setSuccessMsg("Verification code sent to your phone.");
+      if (isManual) {
+        toast.info("Verification code sent to your phone.");
+      }
 
       // Persist timestamps in sessionStorage so reloading does not trigger another request
       if (typeof window !== "undefined") {
@@ -238,6 +242,7 @@ export default function VerifyPhonePage() {
       const updatedUser = await apiConfirmPhoneVerification(code);
       setUser(updatedUser);
       setSuccessMsg("Phone verified successfully!");
+      toast.success("Phone verified successfully!");
       if (user && typeof window !== "undefined") {
         sessionStorage.removeItem(getStorageKey(user.id));
       }

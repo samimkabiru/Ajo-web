@@ -6,6 +6,7 @@ import { AuthProvider } from "@/context/auth-context";
 import { ColdStartProvider } from "@/components/common/cold-start-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { TooltipProvider, GlobalTooltipSuppressor } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -58,6 +59,7 @@ export default function RootLayout({
                 <TooltipProvider delayDuration={150}>
                   <GlobalTooltipSuppressor />
                   {children}
+                  <Toaster />
                 </TooltipProvider>
               </ColdStartProvider>
             </AuthProvider>

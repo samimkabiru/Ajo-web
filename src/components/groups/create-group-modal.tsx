@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getErrorMessage } from "@/lib/api/errors";
 import { Sparkles, Users, Info } from "lucide-react";
+import { toast } from "sonner";
 
 interface CreateGroupModalProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ export function CreateGroupModal({
     mutationFn: apiCreateGroup,
     onSuccess: (newGroup) => {
       queryClient.invalidateQueries({ queryKey: ["groups"] });
+      toast.success(`Savings circle "${newGroup.name}" created!`);
       onClose();
       setName("");
       setDescription("");

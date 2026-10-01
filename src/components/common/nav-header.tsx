@@ -18,6 +18,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export function NavHeader() {
   const { user, logout, isPhoneVerified } = useAuth();
@@ -196,6 +197,7 @@ export function NavHeader() {
               onClick={async () => {
                 setIsLogoutModalOpen(false);
                 await logout();
+                toast.info("You have been signed out.");
               }}
             >
               <LogOut className="w-3.5 h-3.5 mr-1.5" />

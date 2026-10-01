@@ -8,6 +8,7 @@ import { apiSettleCycle } from "@/lib/api/endpoints";
 import { VacantCycleSummary } from "@/lib/api/types";
 import { getErrorMessage } from "@/lib/api/errors";
 import { Scale, CheckCircle2, AlertCircle, Info, ArrowRight } from "lucide-react";
+import { toast } from "sonner";
 
 interface SettleCycleModalProps {
   isOpen: boolean;
@@ -37,6 +38,7 @@ export function SettleCycleModal({
 
     try {
       await apiSettleCycle(cycleId);
+      toast.success("Vacant pot settled! Shortfalls covered and refunds distributed.");
       onSuccess();
       onClose();
     } catch (err) {

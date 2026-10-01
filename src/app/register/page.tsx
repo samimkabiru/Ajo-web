@@ -9,6 +9,7 @@ import { PhoneInput } from "@/components/ui/phone-input";
 import { Button } from "@/components/ui/button";
 import { getErrorMessage } from "@/lib/api/errors";
 import { Eye, EyeOff, AlertCircle, Lock, User, Mail, ArrowRight, Users, Coins } from "lucide-react";
+import { toast } from "sonner";
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -47,6 +48,7 @@ export default function RegisterPage() {
         email: email.trim() ? email.trim() : null,
         password,
       });
+      toast.success("Account created! Let's verify your phone number.");
       router.push("/verify-phone");
     } catch (err) {
       setErrorMsg(getErrorMessage(err));

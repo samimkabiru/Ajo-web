@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getErrorMessage } from "@/lib/api/errors";
 import { Lock, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -47,6 +48,7 @@ function ResetPasswordForm() {
       });
 
       setSuccess(true);
+      toast.success("Password updated successfully! Please sign in with your new password.");
       // Specification rule: "After a successful reset every session is revoked, so send the user to login."
       setTimeout(() => {
         router.push("/login");

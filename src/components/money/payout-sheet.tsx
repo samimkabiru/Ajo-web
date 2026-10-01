@@ -9,6 +9,7 @@ import { apiCollectPayout } from "@/lib/api/endpoints";
 import { PaymentMethod, UserSummary } from "@/lib/api/types";
 import { ApiError, getErrorMessage } from "@/lib/api/errors";
 import { CheckCircle2, AlertCircle, ShieldCheck, ArrowDownCircle, Info } from "lucide-react";
+import { toast } from "sonner";
 
 interface PayoutSheetProps {
   isOpen: boolean;
@@ -84,12 +85,14 @@ export function PayoutSheet({
 
       setIsSuccess(true);
       rotateKey();
+      toast.success(`Pot of ${formatKobo(actualAmountKobo)} disbursed to ${beneficiaryName}!`);
       onSuccess();
       setTimeout(() => {
         onClose();
       }, 1500);
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
+        toast.warning("Rotation schedule changed concurrently. Schedule refreshed.");
         setErrorMsg(
           "The beneficiary or rotation state for this cycle changed (e.g. following a position swap). The rotation schedule has been refreshed in the background. Please review the updated beneficiary before proceeding."
         );

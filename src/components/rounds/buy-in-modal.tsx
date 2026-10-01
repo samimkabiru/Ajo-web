@@ -16,6 +16,7 @@ import { apiBuyIn } from "@/lib/api/endpoints";
 import { ExitRequestSummary, PaymentMethod, UserSummary } from "@/lib/api/types";
 import { getErrorMessage } from "@/lib/api/errors";
 import { UserCheck, ShieldCheck, AlertCircle, Info, Coins } from "lucide-react";
+import { toast } from "sonner";
 
 interface BuyInModalProps {
   isOpen: boolean;
@@ -86,6 +87,7 @@ export function BuyInModal({
       );
 
       rotateKey();
+      toast.success("Slot takeover confirmed via buy-in!");
       onSuccess();
       onClose();
     } catch (err) {

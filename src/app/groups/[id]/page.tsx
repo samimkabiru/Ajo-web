@@ -30,6 +30,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { ViewToggle, ViewMode } from "@/components/common/view-toggle";
 import { EditGroupModal } from "@/components/groups/edit-group-modal";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import {
   Users,
   UserPlus,
@@ -107,6 +108,7 @@ export default function GroupDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["group", groupId] });
       setInviteSuccess("Invitation sent successfully!");
+      toast.success("Invitation sent successfully!");
       setInvitePhone("");
       setInviteError(null);
       setTimeout(() => {
@@ -126,6 +128,7 @@ export default function GroupDetailPage() {
       queryClient.invalidateQueries({ queryKey: ["group-rounds", groupId] });
       setIsCreateRoundModalOpen(false);
       setRoundError(null);
+      toast.success("Savings round created!");
       router.push(`/rounds/${newRound.id}`);
     },
     onError: (err) => {
@@ -138,6 +141,7 @@ export default function GroupDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["group", groupId] });
       setInviteToRevoke(null);
+      toast.info("Invitation revoked.");
     },
   });
 
@@ -146,6 +150,7 @@ export default function GroupDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["group", groupId] });
       setMemberToRemove(null);
+      toast.info("Member removed from circle.");
     },
   });
 
@@ -154,6 +159,7 @@ export default function GroupDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["groups"] });
       setIsLeaveGroupModalOpen(false);
+      toast.info("You left the circle.");
       router.push("/groups");
     },
   });

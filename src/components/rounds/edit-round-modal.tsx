@@ -10,6 +10,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { parseNairaToKobo } from "@/lib/money";
 import { getErrorMessage } from "@/lib/api/errors";
 import { Sliders, Info } from "lucide-react";
+import { toast } from "sonner";
 
 interface EditRoundModalProps {
   isOpen: boolean;
@@ -54,6 +55,7 @@ export function EditRoundModal({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["round", roundId] });
       queryClient.invalidateQueries({ queryKey: ["group-rounds", groupId] });
+      toast.success("Round terms updated.");
       onClose();
       setFormError(null);
     },

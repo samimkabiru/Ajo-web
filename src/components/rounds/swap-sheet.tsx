@@ -6,6 +6,7 @@ import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SimpleTooltip } from "@/components/ui/tooltip";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -87,6 +88,7 @@ export function SwapSheet({
     onSuccess: () => {
       invalidateAll();
       setSuccessMsg("Swap request sent to the participant.");
+      toast.success("Swap request sent to the participant.");
       setSelectedTargetUserId("");
       setErrorMsg(null);
     },
@@ -100,6 +102,7 @@ export function SwapSheet({
     onSuccess: () => {
       invalidateAll();
       setSuccessMsg("Position swap accepted! Rotation order updated.");
+      toast.success("Position swap accepted! Rotation order updated.");
       setErrorMsg(null);
     },
     onError: (err) => {
@@ -113,6 +116,7 @@ export function SwapSheet({
       invalidateAll();
       setErrorMsg(null);
       setSuccessMsg("Swap request declined.");
+      toast.info("Swap request declined.");
     },
     onError: (err) => {
       setErrorMsg(getErrorMessage(err));
@@ -125,6 +129,7 @@ export function SwapSheet({
       invalidateAll();
       setErrorMsg(null);
       setSuccessMsg("Outgoing swap request withdrawn.");
+      toast.info("Outgoing swap request withdrawn.");
     },
     onError: (err) => {
       setErrorMsg(getErrorMessage(err));

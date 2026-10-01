@@ -9,6 +9,7 @@ import { PhoneInput } from "@/components/ui/phone-input";
 import { Button } from "@/components/ui/button";
 import { ApiError, getErrorMessage } from "@/lib/api/errors";
 import { Eye, EyeOff, AlertCircle, Lock, ArrowRight, ShieldCheck, Clock } from "lucide-react";
+import { toast } from "sonner";
 
 const RATE_LIMIT_STORAGE_KEY = "ajo_login_unblock_epoch";
 
@@ -104,6 +105,7 @@ export default function LoginPage() {
     setErrorMsg(null);
     try {
       await login(phone.trim(), password);
+      toast.success("Welcome back to Ajo!");
       router.push("/dashboard");
     } catch (err) {
       if (err instanceof ApiError && err.status === 429) {
@@ -120,6 +122,7 @@ export default function LoginPage() {
           // Ignore
         }
         setErrorMsg(null);
+        toast.error("Too many failed attempts. Please wait before trying again.");
       } else {
         setErrorMsg(getErrorMessage(err));
       }

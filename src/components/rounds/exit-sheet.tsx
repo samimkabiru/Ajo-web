@@ -18,6 +18,7 @@ import { formatKobo, formatSignedKobo, parseNairaToKobo } from "@/lib/money";
 import { useIdempotencyKey } from "@/lib/idempotency";
 import { getErrorMessage } from "@/lib/api/errors";
 import { AlertTriangle, ShieldCheck, CheckCircle2, DollarSign, LogOut } from "lucide-react";
+import { toast } from "sonner";
 
 interface ExitSheetProps {
   isOpen: boolean;
@@ -83,6 +84,7 @@ export function ExitSheet({
       queryClient.invalidateQueries({ queryKey: ["my-exit", roundId] });
       queryClient.invalidateQueries({ queryKey: ["round", roundId] });
       setSuccessMsg("Exit request submitted successfully.");
+      toast.warning("Exit request submitted. Your slot is pending settlement.");
       setErrorMsg(null);
     },
     onError: (err) => {
@@ -95,6 +97,7 @@ export function ExitSheet({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-exit", roundId] });
       setSuccessMsg("Exit request cancelled.");
+      toast.info("Exit request cancelled. Your slot is preserved.");
       setErrorMsg(null);
     },
     onError: (err) => {
@@ -110,6 +113,7 @@ export function ExitSheet({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["exposure", participantId] });
       setSuccessMsg("Repayment recorded on the ledger.");
+      toast.success("Repayment recorded on the ledger.");
       setRepayAmountNaira("");
       setErrorMsg(null);
       rotateKey();

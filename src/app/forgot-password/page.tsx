@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getErrorMessage } from "@/lib/api/errors";
 import { KeyRound, AlertCircle, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 
 function ForgotPasswordForm() {
   const router = useRouter();
@@ -33,6 +34,7 @@ function ForgotPasswordForm() {
       await apiRequestPasswordReset(phone.trim());
       // Specification rule: deliberate anti-enumeration wording
       setNoticeMsg("If an account exists for that number, a code is on its way.");
+      toast.info("If an account exists for that number, a code is on its way.");
       setTimeout(() => {
         router.push(`/reset-password?phone=${encodeURIComponent(phone.trim())}`);
       }, 2000);

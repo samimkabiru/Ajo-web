@@ -16,6 +16,7 @@ import { apiContribute } from "@/lib/api/endpoints";
 import { PaymentMethod, UserSummary } from "@/lib/api/types";
 import { getErrorMessage } from "@/lib/api/errors";
 import { CheckCircle2, AlertCircle, Coins, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
 
 interface ContributeSheetProps {
   isOpen: boolean;
@@ -89,6 +90,7 @@ export function ContributeSheet({
 
       setIsSuccess(true);
       rotateKey();
+      toast.success(`Payment of ${formatKobo(contributionAmountKobo)} recorded for Month #${cycleNumber}!`);
       onSuccess();
       setTimeout(() => {
         onClose();

@@ -16,6 +16,7 @@ import { CardSkeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/auth-context";
 import { getErrorMessage } from "@/lib/api/errors";
 import { Mail, Check, X, ShieldAlert, Users, Calendar, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 export default function MyInvitesPage() {
   const { user, isPhoneVerified } = useAuth();
@@ -39,6 +40,7 @@ export default function MyInvitesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-invites"] });
       queryClient.invalidateQueries({ queryKey: ["groups"] });
+      toast.success("Joined savings circle!");
       setActionError(null);
     },
     onError: (err) => {
@@ -50,6 +52,7 @@ export default function MyInvitesPage() {
     mutationFn: (inviteId: string) => apiDeclineInvite(inviteId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-invites"] });
+      toast.info("Invitation declined.");
       setActionError(null);
     },
     onError: (err) => {

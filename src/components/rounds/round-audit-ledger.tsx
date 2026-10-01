@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SimpleTooltip } from "@/components/ui/tooltip";
+import { toast } from "sonner";
 import {
   apiGetRoundContributions,
   apiGetRoundPayouts,
@@ -44,6 +45,7 @@ export function RoundAuditLedger({ roundId, currentUserId }: RoundAuditLedgerPro
   const copyToClipboard = (id: string) => {
     navigator.clipboard.writeText(id);
     setCopiedId(id);
+    toast.info("Transaction ID copied to clipboard.");
     setTimeout(() => setCopiedId(null), 2000);
   };
 

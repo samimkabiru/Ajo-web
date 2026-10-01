@@ -57,6 +57,7 @@ import { RoundAuditLedger } from "@/components/rounds/round-audit-ledger";
 import { useAuth } from "@/context/auth-context";
 import { formatKobo, formatPoolBalance, formatSignedKobo } from "@/lib/money";
 import { getErrorMessage } from "@/lib/api/errors";
+import { toast } from "sonner";
 import {
   CycleSummary,
   ParticipantSummary,
@@ -218,6 +219,7 @@ export default function RoundDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["round", roundId] });
       setIsActivateConfirmOpen(false);
+      toast.success("Round activated! Monthly cycle schedule is live.");
       setActionError(null);
     },
     onError: (err) => {
@@ -229,6 +231,7 @@ export default function RoundDetailPage() {
     mutationFn: () => apiCancelRound(roundId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["round", roundId] });
+      toast.info("Round has been cancelled.");
       setActionError(null);
     },
     onError: (err) => {
@@ -240,6 +243,7 @@ export default function RoundDetailPage() {
     mutationFn: () => apiJoinRound(roundId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["round", roundId] });
+      toast.success("You joined this savings round!");
       setActionError(null);
     },
     onError: (err) => {
@@ -252,6 +256,7 @@ export default function RoundDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["round", roundId] });
       setIsLeaveRoundModalOpen(false);
+      toast.info("You left this forming round.");
       setActionError(null);
     },
     onError: (err) => {
@@ -265,6 +270,7 @@ export default function RoundDetailPage() {
       queryClient.invalidateQueries({ queryKey: ["round", roundId] });
       setIsAddParticipantModalOpen(false);
       setSelectedMemberUserId("");
+      toast.success("Participant added to round.");
       setActionError(null);
     },
     onError: (err) => {
@@ -277,6 +283,7 @@ export default function RoundDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["round", roundId] });
       setParticipantToRemove(null);
+      toast.info("Participant removed from round.");
       setActionError(null);
     },
     onError: (err) => {

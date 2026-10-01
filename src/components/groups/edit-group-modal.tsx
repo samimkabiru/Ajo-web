@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getErrorMessage } from "@/lib/api/errors";
 import { Settings, Info } from "lucide-react";
+import { toast } from "sonner";
 
 interface EditGroupModalProps {
   isOpen: boolean;
@@ -45,6 +46,7 @@ export function EditGroupModal({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["group", groupId] });
       queryClient.invalidateQueries({ queryKey: ["groups"] });
+      toast.success("Circle settings updated.");
       onClose();
       setFormError(null);
     },
