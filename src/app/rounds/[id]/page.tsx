@@ -54,6 +54,7 @@ import { BuyInModal } from "@/components/rounds/buy-in-modal";
 import { SettleCycleModal } from "@/components/rounds/settle-cycle-modal";
 import { ParticipantHistoryModal } from "@/components/rounds/participant-history-modal";
 import { RoundAuditLedger } from "@/components/rounds/round-audit-ledger";
+import { DeleteRoundModal } from "@/components/rounds/delete-round-modal";
 import { useAuth } from "@/context/auth-context";
 import { formatKobo, formatPoolBalance, formatSignedKobo } from "@/lib/money";
 import { getErrorMessage } from "@/lib/api/errors";
@@ -90,6 +91,7 @@ import {
   CalendarDays,
   FileText,
   MoreVertical,
+  Trash2,
 } from "lucide-react";
 
 export default function RoundDetailPage() {
@@ -105,6 +107,7 @@ export default function RoundDetailPage() {
   const [isActivateConfirmOpen, setIsActivateConfirmOpen] = useState(false);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
   const [isEditRoundTermsOpen, setIsEditRoundTermsOpen] = useState(false);
+  const [isDeleteRoundModalOpen, setIsDeleteRoundModalOpen] = useState(false);
   const [isAddParticipantModalOpen, setIsAddParticipantModalOpen] = useState(false);
   const [isSwapOpen, setIsSwapOpen] = useState(false);
   const [isExitOpen, setIsExitOpen] = useState(false);
@@ -138,6 +141,8 @@ export default function RoundDetailPage() {
     queryFn: () => apiGetGroup(round!.groupId),
     enabled: !!user && !!round?.groupId,
   });
+
+  const isCircleArchived = Boolean(group?.archivedAt);
 
   // Pool balance (ledger liability, displayed positive)
   const { data: poolBalance } = useQuery({
@@ -457,10 +462,56 @@ export default function RoundDetailPage() {
                             <span>Cancel Round</span>
                           </DropdownMenuItem>
                         )}
+
+                        {/* Removal item sits last, separated from others, in destructive style */}
+                        {isAdmin && !isCircleArchived && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              variant="danger"
+                              onClick={() => {
+                                setActionError(null);
+                                setIsDeleteRoundModalOpen(true);
+                              }}
+                            >
+                              <Trash2 className="w-3.5 h-3.5 mr-1" />
+                              <span>Delete Round</span>
+                            </DropdownMenuItem>
+                          </>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}
                 </>
+              )}
+
+              {/* Cancelled Round: admin can delete if circle not archived */}
+              {round.status === "CANCELLED" && isAdmin && !isCircleArchived && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 text-xs font-semibold text-muted hover:text-ink shadow-xs"
+                      aria-label="Manage cancelled round"
+                    >
+                      <MoreVertical className="w-3.5 h-3.5 text-muted" />
+                      <span>Manage</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      variant="danger"
+                      onClick={() => {
+                        setActionError(null);
+                        setIsDeleteRoundModalOpen(true);
+                      }}
+                    >
+                      <Trash2 className="w-3.5 h-3.5 mr-1" />
+                      <span>Delete Round</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
 
               {round.status === "ACTIVE" && myParticipant && (
@@ -1389,6 +1440,14 @@ export default function RoundDetailPage() {
             </div>
           </div>
         </ConfirmationModal>
+
+        {/* Modal: Delete Round */}
+        <DeleteRoundModal
+          isOpen={isDeleteRoundModalOpen}
+          onClose={() => setIsDeleteRoundModalOpen(false)}
+          roundId={roundId}
+          groupId={round.groupId}
+        />
       </div>
     </AuthenticatedLayout>
   );

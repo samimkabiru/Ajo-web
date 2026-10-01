@@ -41,7 +41,7 @@ export default function DashboardPage() {
   // Fetch user's groups (only when authenticated)
   const { data: groups, isLoading: isGroupsLoading } = useQuery({
     queryKey: ["groups"],
-    queryFn: apiGetGroups,
+    queryFn: () => apiGetGroups(false),
     enabled: !!user,
   });
 

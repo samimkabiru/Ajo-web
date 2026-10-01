@@ -101,8 +101,13 @@ export async function apiConfirmPasswordReset(body: {
 
 // ======================== GROUPS ========================
 
-export async function apiGetGroups(): Promise<GroupSummary[]> {
-  return apiFetch<GroupSummary[]>("/groups");
+export type DeleteGroupOutcome =
+  | { outcome: "DELETED" }
+  | { outcome: "ARCHIVED"; group: GroupSummary };
+
+export async function apiGetGroups(archived?: boolean): Promise<GroupSummary[]> {
+  const query = typeof archived === "boolean" ? `?archived=${archived}` : "";
+  return apiFetch<GroupSummary[]>(`/groups${query}`);
 }
 
 export async function apiCreateGroup(body: {
@@ -127,6 +132,16 @@ export async function apiUpdateGroup(
     method: "PATCH",
     body: JSON.stringify(body),
   });
+}
+
+export async function apiDeleteGroup(groupId: string): Promise<DeleteGroupOutcome> {
+  const data = await apiFetch<GroupSummary | undefined>(`/groups/${groupId}`, {
+    method: "DELETE",
+  });
+  if (data && (data.archivedAt || data.id)) {
+    return { outcome: "ARCHIVED", group: data };
+  }
+  return { outcome: "DELETED" };
 }
 
 export async function apiGetMyInvites(): Promise<GroupInviteSummary[]> {
@@ -245,6 +260,12 @@ export async function apiActivateRound(roundId: string): Promise<RoundDetail> {
 export async function apiCancelRound(roundId: string): Promise<void> {
   return apiFetch<void>(`/rounds/${roundId}/cancel`, {
     method: "POST",
+  });
+}
+
+export async function apiDeleteRound(roundId: string): Promise<void> {
+  return apiFetch<void>(`/rounds/${roundId}`, {
+    method: "DELETE",
   });
 }
 

@@ -52,6 +52,7 @@ export interface GroupSummary {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  archivedAt?: string | null;
   memberCount?: number;
   hasActiveRound?: boolean;
 }
@@ -63,6 +64,7 @@ export interface GroupDetail {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  archivedAt?: string | null;
   members: GroupMemberSummary[];
   rounds?: RoundSummary[];
   invites?: GroupInviteSummary[];

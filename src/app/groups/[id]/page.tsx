@@ -29,6 +29,16 @@ import { getErrorMessage } from "@/lib/api/errors";
 import { DatePicker } from "@/components/ui/date-picker";
 import { ViewToggle, ViewMode } from "@/components/common/view-toggle";
 import { EditGroupModal } from "@/components/groups/edit-group-modal";
+import { DeleteGroupModal } from "@/components/groups/delete-group-modal";
+import { DeleteRoundModal } from "@/components/rounds/delete-round-modal";
+import { predictCircleRemoval, canDeleteRound } from "@/lib/removal-prediction";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
@@ -46,6 +56,8 @@ import {
   Clock,
   CheckCircle2,
   Settings,
+  Archive,
+  MoreVertical,
 } from "lucide-react";
 
 export default function GroupDetailPage() {
@@ -58,6 +70,8 @@ export default function GroupDetailPage() {
   const [activeTab, setActiveTab] = useState<"rounds" | "members" | "invites">("rounds");
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isEditGroupModalOpen, setIsEditGroupModalOpen] = useState(false);
+  const [isDeleteGroupModalOpen, setIsDeleteGroupModalOpen] = useState(false);
+  const [roundToDelete, setRoundToDelete] = useState<{ id: string; index: number } | null>(null);
   const [invitePhone, setInvitePhone] = useState("");
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [inviteSuccess, setInviteSuccess] = useState<string | null>(null);
@@ -101,6 +115,8 @@ export default function GroupDetailPage() {
     (m) => m.user?.id === user?.id || (m as { userId?: string }).userId === user?.id
   );
   const isAdmin = currentMembership?.role === "ADMIN" || group?.createdBy === user?.id;
+  const isArchived = Boolean(group?.archivedAt);
+  const prediction = predictCircleRemoval(rounds);
 
   // Mutations
   const inviteMutation = useMutation({
@@ -227,13 +243,52 @@ export default function GroupDetailPage() {
             <span className="text-ink font-medium">{group.name}</span>
           </div>
 
+          {/* Quiet Archived Banner */}
+          {isArchived && (
+            <div
+              role="region"
+              aria-label="Archived circle notice"
+              className="p-4 rounded-[14px] bg-amber-500/10 border border-amber-500/25 dark:border-amber-400/30 text-amber-950 dark:text-amber-100 flex items-start gap-3 shadow-xs mb-4"
+            >
+              <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0 mt-0.5">
+                <Archive className="w-4 h-4" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="font-heading font-bold text-sm text-amber-950 dark:text-amber-100">
+                    This circle is archived and read-only
+                  </h2>
+                  {group.archivedAt && (
+                    <span className="text-[11px] font-semibold text-amber-900/80 dark:text-amber-200/80">
+                      • Archived on{" "}
+                      {new Date(group.archivedAt).toLocaleDateString("en-US", {
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-amber-900/90 dark:text-amber-200/90 leading-relaxed">
+                  All financial history, completed rounds, payouts and ledgers remain fully browsable.
+                  Administration is closed, but participant repayments and cycle settlements remain active.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-3">
                 <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">
                   {group.name}
                 </h1>
-                {isAdmin ? (
+                {isArchived ? (
+                  <Badge variant="neutral" className="gap-1 text-xs">
+                    <Archive className="w-3 h-3 text-muted" />
+                    Archived
+                  </Badge>
+                ) : isAdmin ? (
                   <Badge variant="primary" className="flex items-center gap-1">
                     <ShieldCheck className="w-3 h-3" />
                     Admin
@@ -251,16 +306,13 @@ export default function GroupDetailPage() {
 
             {/* Action buttons */}
             <div className="flex items-center gap-2 self-start sm:self-auto">
-              {isAdmin ? (
+              {isArchived ? (
+                <Badge variant="neutral" className="gap-1.5 py-1.5 px-3 text-xs">
+                  <Archive className="w-3.5 h-3.5 text-muted" />
+                  Read-Only Record
+                </Badge>
+              ) : isAdmin ? (
                 <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsEditGroupModalOpen(true)}
-                  >
-                    <Settings className="w-4 h-4 mr-1.5" />
-                    Edit Circle
-                  </Button>
                   <Button
                     variant="primary"
                     size="sm"
@@ -272,6 +324,66 @@ export default function GroupDetailPage() {
                     <PlusCircle className="w-4 h-4 mr-1.5" />
                     New Round
                   </Button>
+
+                  {/* Triple-dot overflow menu for circle actions */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-9 h-9 p-0 flex items-center justify-center text-muted hover:text-ink shadow-xs"
+                        aria-label="Circle actions menu"
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-[230px]">
+                      <DropdownMenuItem onClick={() => setIsEditGroupModalOpen(true)}>
+                        <Settings className="w-3.5 h-3.5 text-muted mr-1" />
+                        <span>Edit Circle Details</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+
+                      {/* Circle removal action: honest prediction with disable states */}
+                      {prediction.canExecute ? (
+                        prediction.type === "ARCHIVE" ? (
+                          <DropdownMenuItem onClick={() => setIsDeleteGroupModalOpen(true)}>
+                            <Archive className="w-3.5 h-3.5 text-muted mr-1" />
+                            <span>Archive Circle</span>
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem
+                            variant="danger"
+                            onClick={() => setIsDeleteGroupModalOpen(true)}
+                          >
+                            <Trash2 className="w-3.5 h-3.5 mr-1" />
+                            <span>Delete Circle</span>
+                          </DropdownMenuItem>
+                        )
+                      ) : (
+                        <SimpleTooltip content={prediction.reason} side="left">
+                          <div className="w-full">
+                            <DropdownMenuItem
+                              disabled
+                              className="opacity-50 cursor-not-allowed flex flex-col items-start gap-0.5 py-2"
+                            >
+                              <div className="flex items-center gap-1.5">
+                                {prediction.actionLabel === "Archive Circle" ? (
+                                  <Archive className="w-3.5 h-3.5 text-muted" />
+                                ) : (
+                                  <Trash2 className="w-3.5 h-3.5 text-muted" />
+                                )}
+                                <span>{prediction.actionLabel}</span>
+                              </div>
+                              <span className="text-[10px] text-muted font-normal pl-5">
+                                {prediction.reason}
+                              </span>
+                            </DropdownMenuItem>
+                          </div>
+                        </SimpleTooltip>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </>
               ) : (
                 <Button
@@ -342,7 +454,7 @@ export default function GroupDetailPage() {
                 <Users className="w-4 h-4" />
                 <span>Members ({group.members?.length ?? 0})</span>
               </TabsTrigger>
-              {isAdmin && (
+              {isAdmin && !isArchived && (
                 <TabsTrigger value="invites">
                   <UserPlus className="w-4 h-4" />
                   <span>Pending Invites ({group.invites?.length ?? 0})</span>
@@ -371,10 +483,59 @@ export default function GroupDetailPage() {
                         <Card interactive className="p-5 flex flex-col justify-between h-full group">
                           <div>
                             <div className="flex items-center justify-between gap-2 mb-3">
-                              <span className="text-xs font-semibold uppercase text-muted tracking-wider">
-                                Round #{idx + 1}
-                              </span>
-                              <RoundStatusBadge status={round.status} />
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-semibold uppercase text-muted tracking-wider">
+                                  Round #{idx + 1}
+                                </span>
+                                <RoundStatusBadge status={round.status} />
+                              </div>
+
+                              {/* Overflow menu for round deletion if FORMING or CANCELLED */}
+                              {isAdmin && !isArchived && canDeleteRound(round.status) && (
+                                <div
+                                  className="relative z-10"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                  }}
+                                >
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                        }}
+                                        className="w-8 h-8 rounded-lg flex items-center justify-center text-muted hover:text-ink hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors"
+                                        aria-label={`Options for Round #${idx + 1}`}
+                                      >
+                                        <MoreVertical className="w-4 h-4" />
+                                      </button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-[170px]">
+                                      <DropdownMenuItem asChild>
+                                        <Link href={`/rounds/${round.id}`} className="flex items-center gap-2">
+                                          <ArrowRight className="w-3.5 h-3.5 text-muted mr-1" />
+                                          <span>Open Round</span>
+                                        </Link>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem
+                                        variant="danger"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          setRoundToDelete({ id: round.id, index: idx + 1 });
+                                        }}
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5 mr-1" />
+                                        <span>Delete Round</span>
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                              )}
                             </div>
 
                             <div className="space-y-1 mb-4">
@@ -428,8 +589,57 @@ export default function GroupDetailPage() {
                         </div>
 
                         <div className="flex items-center justify-between sm:justify-end gap-3 font-semibold text-xs text-primary shrink-0 pl-13 sm:pl-0">
-                          <span>Enter round</span>
-                          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                          <div className="flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                            <span>Enter round</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </div>
+
+                          {/* Overflow menu for round deletion if FORMING or CANCELLED */}
+                          {isAdmin && !isArchived && canDeleteRound(round.status) && (
+                            <div
+                              className="relative z-10"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                              }}
+                            >
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                    }}
+                                    className="w-8 h-8 rounded-lg flex items-center justify-center text-muted hover:text-ink hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors"
+                                    aria-label={`Options for Round #${idx + 1}`}
+                                  >
+                                    <MoreVertical className="w-4 h-4" />
+                                  </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-[170px]">
+                                  <DropdownMenuItem asChild>
+                                    <Link href={`/rounds/${round.id}`} className="flex items-center gap-2">
+                                      <ArrowRight className="w-3.5 h-3.5 text-muted mr-1" />
+                                      <span>Open Round</span>
+                                    </Link>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    variant="danger"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setRoundToDelete({ id: round.id, index: idx + 1 });
+                                    }}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5 mr-1" />
+                                    <span>Delete Round</span>
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          )}
                         </div>
                       </Link>
                     ))}
@@ -447,7 +657,7 @@ export default function GroupDetailPage() {
                 <p className="text-xs sm:text-sm text-muted max-w-sm mx-auto mb-5">
                   Rounds represent one complete savings cycle. Each member contributes monthly and takes home the full pot once.
                 </p>
-                {isAdmin ? (
+                {isAdmin && !isArchived ? (
                   <Button
                     variant="primary"
                     onClick={() => {
@@ -458,6 +668,8 @@ export default function GroupDetailPage() {
                     <PlusCircle className="w-4 h-4 mr-1.5" />
                     Configure Round 1
                   </Button>
+                ) : isArchived ? (
+                  <p className="text-xs text-muted italic">This circle is archived and no new rounds can be configured.</p>
                 ) : (
                   <p className="text-xs text-muted italic">Waiting for circle admin to start Round 1.</p>
                 )}
@@ -476,7 +688,7 @@ export default function GroupDetailPage() {
                   Everyone enrolled in this savings circle
                 </p>
               </div>
-              {isAdmin && (
+              {isAdmin && !isArchived && (
                 <Button
                   variant="primary"
                   size="sm"
@@ -525,7 +737,7 @@ export default function GroupDetailPage() {
                         <Badge variant="neutral">Member</Badge>
                       )}
 
-                      {isAdmin && memberId !== user?.id && (
+                      {isAdmin && !isArchived && memberId !== user?.id && (
                         <SimpleTooltip content="Remove member from circle">
                           <button
                             onClick={() => setMemberToRemove({ id: memberId, fullName: member.user.fullName })}
@@ -543,8 +755,8 @@ export default function GroupDetailPage() {
             </div>
           </TabsContent>
 
-          {/* Tab 3: Pending Invites (Admin only) */}
-          {isAdmin && (
+          {/* Tab 3: Pending Invites (Admin only, active circles only) */}
+          {isAdmin && !isArchived && (
             <TabsContent value="invites" className="space-y-4 m-0">
               <div className="flex items-center justify-between">
                 <div>
@@ -824,6 +1036,26 @@ export default function GroupDetailPage() {
             </div>
           </div>
         </ConfirmationModal>
+
+        {/* Modal: Delete / Archive Circle */}
+        <DeleteGroupModal
+          isOpen={isDeleteGroupModalOpen}
+          onClose={() => setIsDeleteGroupModalOpen(false)}
+          groupId={groupId}
+          groupName={group.name}
+          prediction={prediction}
+        />
+
+        {/* Modal: Delete Round */}
+        {roundToDelete && (
+          <DeleteRoundModal
+            isOpen={Boolean(roundToDelete)}
+            onClose={() => setRoundToDelete(null)}
+            roundId={roundToDelete.id}
+            groupId={groupId}
+            roundIndex={roundToDelete.index}
+          />
+        )}
       </div>
     </AuthenticatedLayout>
   );
