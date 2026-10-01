@@ -117,10 +117,10 @@ export default function MyInvitesPage() {
                       {invite.groupName || "Savings Circle"}
                     </h2>
                     <p className="text-xs text-muted mt-0.5">
-                      Invited by <strong>{invite.invitedBy?.fullName || "Admin"}</strong>
+                      Invited by <strong>{invite.inviterName || "Circle Admin"}</strong>
                     </p>
                     <span className="text-[11px] text-muted tabular-nums mt-1 block">
-                      Expires: {new Date(invite.expiresAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      Invited on {new Date(invite.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                     </span>
                   </div>
                 </div>

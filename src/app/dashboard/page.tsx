@@ -91,7 +91,7 @@ export default function DashboardPage() {
                   You have {pendingInvites.length} pending circle {pendingInvites.length === 1 ? "invitation" : "invitations"}
                 </h4>
                 <p className="text-xs text-muted mt-0.5">
-                  From <strong className="text-ink font-semibold">{pendingInvites[0].invitedBy?.fullName || "a friend"}</strong> to join &quot;{pendingInvites[0].groupName || "Circle"}&quot;
+                  From <strong className="text-ink font-semibold">{pendingInvites[0].inviterName || "a friend"}</strong> to join &quot;{pendingInvites[0].groupName || "Circle"}&quot;
                 </p>
               </div>
             </div>

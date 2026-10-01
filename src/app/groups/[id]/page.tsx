@@ -794,7 +794,7 @@ export default function GroupDetailPage() {
                             {invite.phone}
                           </span>
                           <span className="text-xs text-muted">
-                            Invited by {invite.invitedBy?.fullName || "Admin"}
+                            Invited by {invite.inviterName || "Admin"} • {new Date(invite.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                           </span>
                         </div>
                       </div>

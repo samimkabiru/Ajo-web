@@ -77,10 +77,11 @@ export interface GroupInviteSummary {
   groupId: string;
   groupName?: string;
   phone: string;
-  invitedBy: UserSummary;
+  invitedBy: string;
+  inviterName?: string | null;
   status: InviteStatus;
   createdAt: string;
-  expiresAt: string;
+  respondedAt?: string | null;
 }
 
 export type RoundStatus = "FORMING" | "ACTIVE" | "COMPLETED" | "CANCELLED";
