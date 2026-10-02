@@ -5,10 +5,11 @@ import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { useIdempotencyKey } from "@/lib/idempotency";
 import { formatKobo } from "@/lib/money";
+import { isPayoutDateReached, formatDisplayDate } from "@/lib/utils";
 import { apiCollectPayout } from "@/lib/api/endpoints";
 import { PaymentMethod, UserSummary } from "@/lib/api/types";
 import { ApiError, getErrorMessage } from "@/lib/api/errors";
-import { CheckCircle2, AlertCircle, ShieldCheck, ArrowDownCircle, Info } from "lucide-react";
+import { CheckCircle2, AlertCircle, ShieldCheck, ArrowDownCircle, Info, Clock } from "lucide-react";
 import { toast } from "sonner";
 
 interface PayoutSheetProps {
@@ -24,6 +25,7 @@ interface PayoutSheetProps {
   arrearsWithheldKobo?: number;
   onSuccess: () => void;
   onConflict?: () => void;
+  payoutOn?: string | null;
 }
 
 export function PayoutSheet({
@@ -39,12 +41,15 @@ export function PayoutSheet({
   arrearsWithheldKobo = 0,
   onSuccess,
   onConflict,
+  payoutOn,
 }: PayoutSheetProps) {
   const { key, initIntent, rotateKey, resetIntent } = useIdempotencyKey();
   const [method, setMethod] = useState<PaymentMethod>("ONLINE");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  const isDateReached = isPayoutDateReached(payoutOn);
 
   useEffect(() => {
     if (isOpen) {
@@ -131,6 +136,15 @@ export function PayoutSheet({
               </div>
             )}
 
+            {!isDateReached && (
+              <div className="p-3.5 rounded-[10px] bg-amber-500/10 border border-amber-500/20 flex items-start gap-2.5 text-xs text-amber-600 dark:text-amber-400 font-medium leading-snug">
+                <Clock className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>
+                  Disbursement unlocks on {formatDisplayDate(payoutOn)}. The backend rejects collections before the scheduled due date.
+                </span>
+              </div>
+            )}
+
             {/* Expected vs Actual Breakdown */}
             <div className="bg-canvas dark:bg-[#0C0F14] border border-line dark:border-white/10 dark:shadow-[inset_0_2px_4px_rgba(0,0,0,0.45)] rounded-[12px] p-5 space-y-3">
               <div className="flex justify-between items-center text-xs text-muted">
@@ -182,6 +196,7 @@ export function PayoutSheet({
                 variant="primary"
                 onClick={handleConfirmPayout}
                 isLoading={isLoading}
+                disabled={isLoading || !isDateReached || actualAmountKobo <= 0}
                 loadingText="Disbursing..."
               >
                 Confirm Payout of {formatKobo(actualAmountKobo)}

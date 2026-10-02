@@ -57,6 +57,7 @@ import { RoundAuditLedger } from "@/components/rounds/round-audit-ledger";
 import { DeleteRoundModal } from "@/components/rounds/delete-round-modal";
 import { useAuth } from "@/context/auth-context";
 import { formatKobo, formatPoolBalance, formatSignedKobo } from "@/lib/money";
+import { isPayoutDateReached, formatDisplayDate } from "@/lib/utils";
 import { getErrorMessage } from "@/lib/api/errors";
 import { toast } from "sonner";
 import {
@@ -92,6 +93,7 @@ import {
   FileText,
   MoreVertical,
   Trash2,
+  Lock,
 } from "lucide-react";
 
 export default function RoundDetailPage() {
@@ -336,6 +338,11 @@ export default function RoundDetailPage() {
   const actualPotKobo = poolBalance?.balanceKobo
     ? Math.min(expectedPotKobo, Math.abs(poolBalance.balanceKobo))
     : 0;
+
+  // Payout availability checks: collections can only happen on or after the due/payout date per backend rule
+  const targetPayoutDate = currentCycle?.payoutOn || currentCycle?.dueOn;
+  const isPayoutUnlocked = isPayoutDateReached(targetPayoutDate);
+  const isPotCollectable = isPayoutUnlocked && actualPotKobo > 0;
 
   return (
     <AuthenticatedLayout>
@@ -905,14 +912,32 @@ export default function RoundDetailPage() {
                     {(currentCycle.status === "OPEN" || currentCycle.status === "PAID") &&
                       (isUserBeneficiaryOfCycle || isAdmin) &&
                       !cyclePayout && (
-                        <Button
-                          variant="accent"
-                          size="default"
-                          onClick={() => setIsPayoutOpen(true)}
+                        <SimpleTooltip
+                          content={
+                            !isPayoutUnlocked
+                              ? `Payout unlocks on ${formatDisplayDate(targetPayoutDate)} (due date)`
+                              : actualPotKobo <= 0
+                              ? "No funds in pot yet"
+                              : undefined
+                          }
                         >
-                          <Coins className="w-4 h-4 mr-1.5" />
-                          Collect Pot ({formatKobo(actualPotKobo)})
-                        </Button>
+                          <span className="inline-block">
+                            <Button
+                              variant="accent"
+                              size="default"
+                              disabled={!isPotCollectable}
+                              onClick={() => setIsPayoutOpen(true)}
+                              className={!isPayoutUnlocked ? "opacity-60 cursor-not-allowed" : ""}
+                            >
+                              {!isPayoutUnlocked ? (
+                                <Lock className="w-4 h-4 mr-1.5 shrink-0" />
+                              ) : (
+                                <Coins className="w-4 h-4 mr-1.5 shrink-0" />
+                              )}
+                              Collect Pot ({formatKobo(actualPotKobo)})
+                            </Button>
+                          </span>
+                        </SimpleTooltip>
                       )}
 
                     {/* Settle vacant cycle button */}
@@ -1311,6 +1336,7 @@ export default function RoundDetailPage() {
             expectedAmountKobo={expectedPotKobo}
             actualAmountKobo={actualPotKobo}
             shortfallKobo={Math.max(0, expectedPotKobo - actualPotKobo)}
+            payoutOn={targetPayoutDate}
             onSuccess={() => {
               refetchPayout();
               refetchRound();
