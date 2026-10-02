@@ -2,7 +2,9 @@
 
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SimpleTooltip } from "@/components/ui/tooltip";
@@ -106,7 +108,7 @@ export function RoundAuditLedger({ roundId, currentUserId }: RoundAuditLedgerPro
       : isAllClaimsLoading;
 
   return (
-    <Card className="p-5 sm:p-6 space-y-5">
+    <Card className="p-5 sm:p-6 space-y-5 min-w-0 max-w-full overflow-hidden">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-line dark:border-white/10">
         <div>
           <div className="flex items-center gap-2">
@@ -121,57 +123,89 @@ export function RoundAuditLedger({ roundId, currentUserId }: RoundAuditLedgerPro
         </div>
 
         {/* Tab Selector */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-canvas dark:bg-[#14171B] border border-line/60 dark:border-white/10 text-xs font-semibold self-start sm:self-auto overflow-x-auto">
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-canvas dark:bg-[#14171B] border border-line/60 dark:border-white/10 text-xs font-semibold w-full sm:w-auto max-w-full overflow-x-auto no-scrollbar select-none">
           <button
             type="button"
             onClick={() => setActiveLedgerTab("contributions")}
-            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+            className={cn(
+              "relative px-3 py-1.5 rounded-lg transition-colors duration-150 flex items-center gap-1.5 whitespace-nowrap shrink-0 touch-press select-none",
               activeLedgerTab === "contributions"
-                ? "bg-surface dark:bg-[#1E232B] text-primary dark:text-indigo-300 shadow-sm"
+                ? "text-primary dark:text-indigo-300 font-bold"
                 : "text-muted hover:text-ink"
-            }`}
+            )}
           >
-            <ArrowDownLeft className="w-3.5 h-3.5" />
-            Contributions
+            {activeLedgerTab === "contributions" && (
+              <motion.span
+                layoutId="ledgerSubTabPill"
+                className="absolute inset-0 rounded-lg bg-surface dark:bg-[#1E232B] shadow-xs border border-line/60 dark:border-white/10 z-0"
+                transition={{ type: "spring", stiffness: 450, damping: 35 }}
+              />
+            )}
+            <ArrowDownLeft className="w-3.5 h-3.5 relative z-10" />
+            <span className="relative z-10">Contributions</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveLedgerTab("payouts")}
-            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+            className={cn(
+              "relative px-3 py-1.5 rounded-lg transition-colors duration-150 flex items-center gap-1.5 whitespace-nowrap shrink-0 touch-press select-none",
               activeLedgerTab === "payouts"
-                ? "bg-surface dark:bg-[#1E232B] text-primary dark:text-indigo-300 shadow-sm"
+                ? "text-primary dark:text-indigo-300 font-bold"
                 : "text-muted hover:text-ink"
-            }`}
+            )}
           >
-            <ArrowUpRight className="w-3.5 h-3.5" />
-            Payouts
+            {activeLedgerTab === "payouts" && (
+              <motion.span
+                layoutId="ledgerSubTabPill"
+                className="absolute inset-0 rounded-lg bg-surface dark:bg-[#1E232B] shadow-xs border border-line/60 dark:border-white/10 z-0"
+                transition={{ type: "spring", stiffness: 450, damping: 35 }}
+              />
+            )}
+            <ArrowUpRight className="w-3.5 h-3.5 relative z-10" />
+            <span className="relative z-10">Payouts</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveLedgerTab("claims")}
-            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+            className={cn(
+              "relative px-3 py-1.5 rounded-lg transition-colors duration-150 flex items-center gap-1.5 whitespace-nowrap shrink-0 touch-press select-none",
               activeLedgerTab === "claims"
-                ? "bg-surface dark:bg-[#1E232B] text-primary dark:text-indigo-300 shadow-sm"
+                ? "text-primary dark:text-indigo-300 font-bold"
                 : "text-muted hover:text-ink"
-            }`}
+            )}
           >
-            <AlertTriangle className="w-3.5 h-3.5" />
-            Shortfall Claims
+            {activeLedgerTab === "claims" && (
+              <motion.span
+                layoutId="ledgerSubTabPill"
+                className="absolute inset-0 rounded-lg bg-surface dark:bg-[#1E232B] shadow-xs border border-line/60 dark:border-white/10 z-0"
+                transition={{ type: "spring", stiffness: 450, damping: 35 }}
+              />
+            )}
+            <AlertTriangle className="w-3.5 h-3.5 relative z-10" />
+            <span className="relative z-10">Shortfall Claims</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveLedgerTab("settlements")}
-            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+            className={cn(
+              "relative px-3 py-1.5 rounded-lg transition-colors duration-150 flex items-center gap-1.5 whitespace-nowrap shrink-0 touch-press select-none",
               activeLedgerTab === "settlements"
-                ? "bg-surface dark:bg-[#1E232B] text-primary dark:text-indigo-300 shadow-sm"
+                ? "text-primary dark:text-indigo-300 font-bold"
                 : "text-muted hover:text-ink"
-            }`}
+            )}
           >
-            <RotateCcw className="w-3.5 h-3.5" />
-            Refunds & Buy-Ins
+            {activeLedgerTab === "settlements" && (
+              <motion.span
+                layoutId="ledgerSubTabPill"
+                className="absolute inset-0 rounded-lg bg-surface dark:bg-[#1E232B] shadow-xs border border-line/60 dark:border-white/10 z-0"
+                transition={{ type: "spring", stiffness: 450, damping: 35 }}
+              />
+            )}
+            <RotateCcw className="w-3.5 h-3.5 relative z-10" />
+            <span className="relative z-10">Refunds & Buy-Ins</span>
           </button>
         </div>
       </div>
@@ -349,42 +383,64 @@ export function RoundAuditLedger({ roundId, currentUserId }: RoundAuditLedgerPro
       {activeLedgerTab === "claims" && (
         <div className="space-y-3">
           {/* Claims Filter Sub-Selector */}
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2">
-              <span className="text-muted font-medium">Filter Claims:</span>
-              <div className="inline-flex rounded-lg border border-line dark:border-white/10 p-0.5 bg-canvas dark:bg-[#14171B]">
+          <div className="w-full max-w-full overflow-x-auto no-scrollbar py-0.5">
+            <div className="flex items-center gap-2 w-max text-xs">
+              <span className="text-muted font-medium shrink-0">Filter Claims:</span>
+              <div className="inline-flex rounded-lg border border-line dark:border-white/10 p-0.5 bg-canvas dark:bg-[#14171B] shrink-0 select-none">
                 <button
                   type="button"
                   onClick={() => setClaimsFilter("all")}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
-                    claimsFilter === "all"
-                      ? "bg-surface dark:bg-[#1E232B] text-ink shadow-xs"
-                      : "text-muted hover:text-ink"
-                  }`}
+                  className={cn(
+                    "relative px-2.5 py-1 rounded-md text-[11px] font-semibold transition-colors duration-150 whitespace-nowrap touch-press select-none",
+                    claimsFilter === "all" ? "text-ink font-bold" : "text-muted hover:text-ink"
+                  )}
                 >
-                  All Claims ({allClaims?.length || 0})
+                  {claimsFilter === "all" && (
+                    <motion.span
+                      layoutId="claimsFilterPill"
+                      className="absolute inset-0 rounded-md bg-surface dark:bg-[#1E232B] shadow-xs border border-line/60 dark:border-white/10 z-0"
+                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                    />
+                  )}
+                  <span className="relative z-10">All Claims ({allClaims?.length || 0})</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setClaimsFilter("open")}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                  className={cn(
+                    "relative px-2.5 py-1 rounded-md text-[11px] font-semibold transition-colors duration-150 whitespace-nowrap touch-press select-none",
                     claimsFilter === "open"
-                      ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 shadow-xs"
+                      ? "text-amber-600 dark:text-amber-400 font-bold"
                       : "text-muted hover:text-ink"
-                  }`}
+                  )}
                 >
-                  Open Only ({openClaims?.length || 0})
+                  {claimsFilter === "open" && (
+                    <motion.span
+                      layoutId="claimsFilterPill"
+                      className="absolute inset-0 rounded-md bg-surface dark:bg-[#1E232B] shadow-xs border border-line/60 dark:border-white/10 z-0"
+                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                    />
+                  )}
+                  <span className="relative z-10">Open Only ({openClaims?.length || 0})</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setClaimsFilter("mine")}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                  className={cn(
+                    "relative px-2.5 py-1 rounded-md text-[11px] font-semibold transition-colors duration-150 whitespace-nowrap touch-press select-none",
                     claimsFilter === "mine"
-                      ? "bg-primary-tint text-primary dark:text-indigo-400 shadow-xs"
+                      ? "text-primary dark:text-indigo-400 font-bold"
                       : "text-muted hover:text-ink"
-                  }`}
+                  )}
                 >
-                  My Claims ({myClaims?.length || 0})
+                  {claimsFilter === "mine" && (
+                    <motion.span
+                      layoutId="claimsFilterPill"
+                      className="absolute inset-0 rounded-md bg-surface dark:bg-[#1E232B] shadow-xs border border-line/60 dark:border-white/10 z-0"
+                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                    />
+                  )}
+                  <span className="relative z-10">My Claims ({myClaims?.length || 0})</span>
                 </button>
               </div>
             </div>
@@ -476,10 +532,10 @@ export function RoundAuditLedger({ roundId, currentUserId }: RoundAuditLedgerPro
                 {refunds.map((r) => (
                   <div
                     key={r.id}
-                    className="p-3 rounded-lg border border-line dark:border-white/10 bg-surface dark:bg-[#171B22] flex items-center justify-between text-xs"
+                    className="p-3.5 rounded-xl border border-line dark:border-white/10 bg-surface dark:bg-[#171B22] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs"
                   >
-                    <div>
-                      <span className="font-semibold text-ink block">
+                    <div className="min-w-0">
+                      <span className="font-semibold text-ink block break-words">
                         Refund to {r.recipient?.fullName || "Leaver"}
                       </span>
                       <span className="text-[11px] text-muted tabular-nums">
@@ -490,7 +546,7 @@ export function RoundAuditLedger({ roundId, currentUserId }: RoundAuditLedgerPro
                         })}
                       </span>
                     </div>
-                    <div className="text-right">
+                    <div className="text-left sm:text-right pl-0 sm:pl-2 shrink-0">
                       <span className="font-bold text-positive block tabular-nums">
                         +{formatKobo(r.actualAmountKobo)}
                       </span>
@@ -524,10 +580,10 @@ export function RoundAuditLedger({ roundId, currentUserId }: RoundAuditLedgerPro
                 {buyIns.map((b) => (
                   <div
                     key={b.id}
-                    className="p-3 rounded-lg border border-line dark:border-white/10 bg-surface dark:bg-[#171B22] flex items-center justify-between text-xs"
+                    className="p-3.5 rounded-xl border border-line dark:border-white/10 bg-surface dark:bg-[#171B22] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs"
                   >
-                    <div>
-                      <span className="font-semibold text-ink block">
+                    <div className="min-w-0">
+                      <span className="font-semibold text-ink block break-words">
                         {b.replacement?.fullName || "Replacement"} bought in for {b.leaver?.fullName || "Leaver"}
                       </span>
                       <span className="text-[11px] text-muted tabular-nums">
@@ -538,7 +594,7 @@ export function RoundAuditLedger({ roundId, currentUserId }: RoundAuditLedgerPro
                         })} · Method: {b.method || "ONLINE"}
                       </span>
                     </div>
-                    <div className="text-right">
+                    <div className="text-left sm:text-right pl-0 sm:pl-2 shrink-0">
                       <span className="font-bold text-positive block tabular-nums">
                         {formatKobo(b.amountKobo)}
                       </span>

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import {
   apiGetRound,
   apiGetGroup,
@@ -57,7 +58,7 @@ import { RoundAuditLedger } from "@/components/rounds/round-audit-ledger";
 import { DeleteRoundModal } from "@/components/rounds/delete-round-modal";
 import { useAuth } from "@/context/auth-context";
 import { formatKobo, formatPoolBalance, formatSignedKobo } from "@/lib/money";
-import { isPayoutDateReached, formatDisplayDate } from "@/lib/utils";
+import { isPayoutDateReached, formatDisplayDate, cn } from "@/lib/utils";
 import { getErrorMessage } from "@/lib/api/errors";
 import { toast } from "sonner";
 import {
@@ -818,30 +819,46 @@ export default function RoundDetailPage() {
 
             {/* View Switcher: Rotation Schedule vs Financial Audit Ledger */}
             <div className="flex items-center justify-between gap-4 pt-2">
-              <div className="flex items-center gap-2 p-1 rounded-xl bg-canvas dark:bg-[#14171B] border border-line dark:border-white/10 text-xs font-semibold">
+              <div className="inline-flex items-center gap-1.5 p-1 rounded-xl bg-canvas dark:bg-[#14171B] border border-line dark:border-white/10 text-xs font-semibold select-none max-w-full overflow-x-auto no-scrollbar">
                 <button
                   type="button"
                   onClick={() => setActiveViewTab("cycles")}
-                  className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                  className={cn(
+                    "relative px-3.5 py-1.5 rounded-[9px] transition-colors duration-150 flex items-center gap-1.5 touch-press select-none shrink-0 whitespace-nowrap",
                     activeViewTab === "cycles"
-                      ? "bg-surface dark:bg-[#1E232B] text-primary dark:text-indigo-300 shadow-sm"
+                      ? "text-primary dark:text-indigo-300 font-bold"
                       : "text-muted hover:text-ink"
-                  }`}
+                  )}
                 >
-                  <CalendarDays className="w-3.5 h-3.5" />
-                  Monthly Rotation ({round.cycles?.length || 0})
+                  {activeViewTab === "cycles" && (
+                    <motion.span
+                      layoutId="roundViewTabPill"
+                      className="absolute inset-0 rounded-[9px] bg-surface dark:bg-[#1E232B] shadow-xs border border-line/60 dark:border-white/10 z-0"
+                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                    />
+                  )}
+                  <CalendarDays className="w-3.5 h-3.5 relative z-10" />
+                  <span className="relative z-10">Monthly Rotation ({round.cycles?.length || 0})</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveViewTab("ledger")}
-                  className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                  className={cn(
+                    "relative px-3.5 py-1.5 rounded-[9px] transition-colors duration-150 flex items-center gap-1.5 touch-press select-none shrink-0 whitespace-nowrap",
                     activeViewTab === "ledger"
-                      ? "bg-surface dark:bg-[#1E232B] text-primary dark:text-indigo-300 shadow-sm"
+                      ? "text-primary dark:text-indigo-300 font-bold"
                       : "text-muted hover:text-ink"
-                  }`}
+                  )}
                 >
-                  <FileText className="w-3.5 h-3.5" />
-                  Financial Audit Ledger
+                  {activeViewTab === "ledger" && (
+                    <motion.span
+                      layoutId="roundViewTabPill"
+                      className="absolute inset-0 rounded-[9px] bg-surface dark:bg-[#1E232B] shadow-xs border border-line/60 dark:border-white/10 z-0"
+                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                    />
+                  )}
+                  <FileText className="w-3.5 h-3.5 relative z-10" />
+                  <span className="relative z-10">Financial Audit Ledger</span>
                 </button>
               </div>
             </div>

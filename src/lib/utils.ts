@@ -78,3 +78,28 @@ export function formatDisplayDate(dateStr?: string | null): string {
     year: "numeric",
   });
 }
+
+/**
+ * Formats an ISO date/timestamp into a friendly relative time (e.g. "just now", "5m ago", "2h ago", "3 days ago").
+ */
+export function formatRelativeTime(dateStr?: string | null, now: Date = new Date()): string {
+  if (!dateStr) return "—";
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return dateStr;
+
+  const diffSecs = Math.floor((now.getTime() - date.getTime()) / 1000);
+  if (diffSecs < 60) return "just now";
+  const diffMins = Math.floor(diffSecs / 60);
+  if (diffMins < 60) return `${diffMins}m ago`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays === 1) return "yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}

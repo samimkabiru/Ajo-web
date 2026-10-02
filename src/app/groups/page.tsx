@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { apiGetGroups } from "@/lib/api/endpoints";
+import { motion } from "framer-motion";
 import { AuthenticatedLayout } from "@/components/common/authenticated-layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -102,20 +103,27 @@ export default function GroupsPage() {
 
         {/* Segmented Control: Active vs Archived */}
         <div className="flex items-center justify-between border-b border-line/80 dark:border-white/10 pb-3">
-          <div className="inline-flex items-center p-1 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-line/60 dark:border-white/10">
+          <div className="inline-flex items-center p-1 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-line/60 dark:border-white/10 select-none">
             <button
               type="button"
               onClick={() => setActiveCategory("active")}
               className={cn(
-                "flex items-center gap-2 px-3.5 py-1.5 rounded-[9px] text-xs font-bold transition-all",
+                "relative flex items-center gap-2 px-3.5 py-1.5 rounded-[9px] text-xs font-bold transition-colors duration-150 touch-press",
                 !isArchived
-                  ? "bg-surface dark:bg-[#1A1F2B] text-ink dark:text-white shadow-xs"
+                  ? "text-ink dark:text-white font-extrabold"
                   : "text-muted hover:text-ink dark:hover:text-white"
               )}
             >
-              <span>Active Circles</span>
+              {!isArchived && (
+                <motion.span
+                  layoutId="activeCategoryPill"
+                  className="absolute inset-0 rounded-[9px] bg-surface dark:bg-[#1A1F2B] shadow-xs border border-line/60 dark:border-white/10 z-0"
+                  transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                />
+              )}
+              <span className="relative z-10">Active Circles</span>
               {activeGroups && activeGroups.length > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-extrabold bg-primary/10 text-primary dark:bg-indigo-500/20 dark:text-indigo-300">
+                <span className="relative z-10 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold bg-primary/10 text-primary dark:bg-indigo-500/20 dark:text-indigo-300">
                   {activeGroups.length}
                 </span>
               )}
@@ -124,16 +132,23 @@ export default function GroupsPage() {
               type="button"
               onClick={() => setActiveCategory("archived")}
               className={cn(
-                "flex items-center gap-1.5 px-3.5 py-1.5 rounded-[9px] text-xs font-bold transition-all",
+                "relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-[9px] text-xs font-bold transition-colors duration-150 touch-press",
                 isArchived
-                  ? "bg-surface dark:bg-[#1A1F2B] text-ink dark:text-white shadow-xs"
+                  ? "text-ink dark:text-white font-extrabold"
                   : "text-muted hover:text-ink dark:hover:text-white"
               )}
             >
-              <Archive className="w-3.5 h-3.5" />
-              <span>Archived</span>
+              {isArchived && (
+                <motion.span
+                  layoutId="activeCategoryPill"
+                  className="absolute inset-0 rounded-[9px] bg-surface dark:bg-[#1A1F2B] shadow-xs border border-line/60 dark:border-white/10 z-0"
+                  transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                />
+              )}
+              <Archive className="w-3.5 h-3.5 relative z-10" />
+              <span className="relative z-10">Archived</span>
               {archivedGroups && archivedGroups.length > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-extrabold bg-muted/15 text-muted dark:text-slate-300">
+                <span className="relative z-10 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold bg-muted/15 text-muted dark:text-slate-300">
                   {archivedGroups.length}
                 </span>
               )}

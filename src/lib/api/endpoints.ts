@@ -170,8 +170,12 @@ export async function apiDeclineInvite(inviteId: string): Promise<void> {
   });
 }
 
-export async function apiRevokeInvite(inviteId: string): Promise<void> {
-  return apiFetch<void>(`/groups/invites/${inviteId}/revoke`, {
+export async function apiGetGroupInvites(groupId: string): Promise<GroupInviteSummary[]> {
+  return apiFetch<GroupInviteSummary[]>(`/groups/${groupId}/invites`);
+}
+
+export async function apiRevokeInvite(inviteId: string): Promise<GroupInviteSummary> {
+  return apiFetch<GroupInviteSummary>(`/groups/invites/${inviteId}/revoke`, {
     method: "POST",
   });
 }

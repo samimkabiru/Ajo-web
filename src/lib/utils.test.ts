@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { formatPhoneWithDashes, isPayoutDateReached, formatDisplayDate } from "./utils";
+import { formatPhoneWithDashes, isPayoutDateReached, formatDisplayDate, formatRelativeTime } from "./utils";
 
 describe("formatPhoneWithDashes", () => {
   it("formats standard 11-digit local phone number with dashes between each 3 digits", () => {
@@ -64,5 +64,38 @@ describe("formatDisplayDate", () => {
   it("handles empty or missing date strings", () => {
     assert.equal(formatDisplayDate(null), "—");
     assert.equal(formatDisplayDate(""), "—");
+  });
+});
+
+describe("formatRelativeTime", () => {
+  const baseNow = new Date("2026-10-02T12:00:00Z");
+
+  it("formats very recent timestamps as just now", () => {
+    assert.equal(formatRelativeTime("2026-10-02T11:59:45Z", baseNow), "just now");
+  });
+
+  it("formats minutes ago correctly", () => {
+    assert.equal(formatRelativeTime("2026-10-02T11:45:00Z", baseNow), "15m ago");
+  });
+
+  it("formats hours ago correctly", () => {
+    assert.equal(formatRelativeTime("2026-10-02T08:00:00Z", baseNow), "4h ago");
+  });
+
+  it("formats yesterday correctly", () => {
+    assert.equal(formatRelativeTime("2026-10-01T10:00:00Z", baseNow), "yesterday");
+  });
+
+  it("formats multiple days ago correctly", () => {
+    assert.equal(formatRelativeTime("2026-09-29T12:00:00Z", baseNow), "3 days ago");
+  });
+
+  it("handles older dates by falling back to formatted date", () => {
+    assert.equal(formatRelativeTime("2026-09-01T12:00:00Z", baseNow), "Sep 1, 2026");
+  });
+
+  it("handles empty or invalid values gracefully", () => {
+    assert.equal(formatRelativeTime(null, baseNow), "—");
+    assert.equal(formatRelativeTime("", baseNow), "—");
   });
 });

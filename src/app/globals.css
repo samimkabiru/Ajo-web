@@ -267,3 +267,14 @@ h1,h2,h3,h4,h5,h6,.font-heading {
     scroll-behavior: auto !important;
   }
 }
+
+/* ════════════════════════════════════════════════
+   SCROLLBAR UTILITIES
+════════════════════════════════════════════════ */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

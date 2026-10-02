@@ -2,7 +2,9 @@
 
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import { Modal } from "@/components/ui/modal";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { SimpleTooltip } from "@/components/ui/tooltip";
 import {
@@ -143,42 +145,66 @@ export function ParticipantHistoryModal({
         )}
 
         {/* Tabs */}
-        <div className="flex border-b border-line dark:border-white/10 gap-4 text-xs font-semibold">
+        <div className="flex border-b border-line dark:border-white/10 gap-5 text-xs font-semibold overflow-x-auto no-scrollbar select-none">
           <button
             type="button"
             onClick={() => setActiveTab("contributions")}
-            className={`pb-2.5 transition-colors border-b-2 -mb-[1px] flex items-center gap-1.5 ${
+            className={cn(
+              "relative pb-2.5 transition-colors duration-150 flex items-center gap-1.5 touch-press select-none whitespace-nowrap shrink-0",
               activeTab === "contributions"
-                ? "border-primary text-primary dark:text-indigo-400"
-                : "border-transparent text-muted hover:text-ink"
-            }`}
+                ? "text-primary dark:text-indigo-400 font-bold"
+                : "text-muted hover:text-ink"
+            )}
           >
             <ArrowDownLeft className="w-3.5 h-3.5" />
-            Contributions ({contributions?.length || 0})
+            <span>Contributions ({contributions?.length || 0})</span>
+            {activeTab === "contributions" && (
+              <motion.div
+                layoutId="participantHistoryTabUnderline"
+                className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary dark:bg-indigo-400 rounded-full z-10"
+                transition={{ type: "spring", stiffness: 450, damping: 35 }}
+              />
+            )}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("payouts")}
-            className={`pb-2.5 transition-colors border-b-2 -mb-[1px] flex items-center gap-1.5 ${
+            className={cn(
+              "relative pb-2.5 transition-colors duration-150 flex items-center gap-1.5 touch-press select-none whitespace-nowrap shrink-0",
               activeTab === "payouts"
-                ? "border-primary text-primary dark:text-indigo-400"
-                : "border-transparent text-muted hover:text-ink"
-            }`}
+                ? "text-primary dark:text-indigo-400 font-bold"
+                : "text-muted hover:text-ink"
+            )}
           >
             <ArrowUpRight className="w-3.5 h-3.5" />
-            Payouts ({payouts?.length || 0})
+            <span>Payouts ({payouts?.length || 0})</span>
+            {activeTab === "payouts" && (
+              <motion.div
+                layoutId="participantHistoryTabUnderline"
+                className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary dark:bg-indigo-400 rounded-full z-10"
+                transition={{ type: "spring", stiffness: 450, damping: 35 }}
+              />
+            )}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("repayments")}
-            className={`pb-2.5 transition-colors border-b-2 -mb-[1px] flex items-center gap-1.5 ${
+            className={cn(
+              "relative pb-2.5 transition-colors duration-150 flex items-center gap-1.5 touch-press select-none whitespace-nowrap shrink-0",
               activeTab === "repayments"
-                ? "border-primary text-primary dark:text-indigo-400"
-                : "border-transparent text-muted hover:text-ink"
-            }`}
+                ? "text-primary dark:text-indigo-400 font-bold"
+                : "text-muted hover:text-ink"
+            )}
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            Repayments ({repayments?.length || 0})
+            <span>Repayments ({repayments?.length || 0})</span>
+            {activeTab === "repayments" && (
+              <motion.div
+                layoutId="participantHistoryTabUnderline"
+                className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary dark:bg-indigo-400 rounded-full z-10"
+                transition={{ type: "spring", stiffness: 450, damping: 35 }}
+              />
+            )}
           </button>
         </div>
 

@@ -1,18 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   apiGetGroup,
   apiGetGroupRounds,
+  apiGetGroupInvites,
   apiInviteMember,
   apiRevokeInvite,
   apiRemoveGroupMember,
   apiLeaveGroup,
   apiCreateRound,
 } from "@/lib/api/endpoints";
+import type { GroupInviteSummary } from "@/lib/api/types";
 import { AuthenticatedLayout } from "@/components/common/authenticated-layout";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,7 +27,7 @@ import { CardSkeleton, Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/context/auth-context";
 import { formatKobo, parseNairaToKobo } from "@/lib/money";
-import { getErrorMessage } from "@/lib/api/errors";
+import { ApiError, getErrorMessage } from "@/lib/api/errors";
 import { DatePicker } from "@/components/ui/date-picker";
 import { ViewToggle, ViewMode } from "@/components/common/view-toggle";
 import { EditGroupModal } from "@/components/groups/edit-group-modal";
@@ -39,7 +41,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+import { cn, formatPhoneWithDashes, formatRelativeTime } from "@/lib/utils";
 import { toast } from "sonner";
 import {
   Users,
@@ -58,6 +60,10 @@ import {
   Settings,
   Archive,
   MoreVertical,
+  Send,
+  History,
+  UserX,
+  XCircle,
 } from "lucide-react";
 
 export default function GroupDetailPage() {
@@ -85,7 +91,6 @@ export default function GroupDetailPage() {
   // Confirmation modal states
   const [memberToRemove, setMemberToRemove] = useState<{ id: string; fullName: string } | null>(null);
   const [isLeaveGroupModalOpen, setIsLeaveGroupModalOpen] = useState(false);
-  const [inviteToRevoke, setInviteToRevoke] = useState<{ id: string; phone: string } | null>(null);
 
   // Group Details
   const {
@@ -118,11 +123,31 @@ export default function GroupDetailPage() {
   const isArchived = Boolean(group?.archivedAt);
   const prediction = predictCircleRemoval(rounds);
 
+  // Group Invites (Admin only)
+  const {
+    data: groupInvites = [],
+    isLoading: isInvitesLoading,
+    refetch: refetchInvites,
+  } = useQuery({
+    queryKey: ["group-invites", groupId],
+    queryFn: () => apiGetGroupInvites(groupId),
+    enabled: !!user && !!groupId && isAdmin,
+  });
+
+  const pendingInvites = useMemo(() => {
+    return groupInvites.filter((inv) => inv.status === "PENDING");
+  }, [groupInvites]);
+
+  const historicalInvites = useMemo(() => {
+    return groupInvites.filter((inv) => inv.status !== "PENDING");
+  }, [groupInvites]);
+
   // Mutations
   const inviteMutation = useMutation({
     mutationFn: (phone: string) => apiInviteMember(groupId, phone),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["group", groupId] });
+      queryClient.invalidateQueries({ queryKey: ["group-invites", groupId] });
       setInviteSuccess("Invitation sent successfully!");
       toast.success("Invitation sent successfully!");
       setInvitePhone("");
@@ -154,10 +179,51 @@ export default function GroupDetailPage() {
 
   const revokeInviteMutation = useMutation({
     mutationFn: (inviteId: string) => apiRevokeInvite(inviteId),
-    onSuccess: () => {
+    onSuccess: (updatedInvite) => {
+      queryClient.setQueryData<GroupInviteSummary[]>(["group-invites", groupId], (old) => {
+        if (!old) return old;
+        return old.map((inv) => (inv.id === updatedInvite.id ? updatedInvite : inv));
+      });
+      queryClient.invalidateQueries({ queryKey: ["group-invites", groupId] });
       queryClient.invalidateQueries({ queryKey: ["group", groupId] });
-      setInviteToRevoke(null);
-      toast.info("Invitation revoked.");
+      toast.success("Invitation revoked.");
+    },
+    onError: async (err: unknown) => {
+      // Sync latest state on error
+      await queryClient.invalidateQueries({ queryKey: ["group-invites", groupId] });
+      await queryClient.invalidateQueries({ queryKey: ["group", groupId] });
+
+      if (err instanceof ApiError) {
+        if (err.status === 409) {
+          const detailLower = (err.detail || "").toLowerCase();
+          if (detailLower.includes("archive")) {
+            toast.error("This circle is archived and cannot be modified.");
+          } else if (
+            detailLower.includes("accept") ||
+            detailLower.includes("member") ||
+            detailLower.includes("joined")
+          ) {
+            toast.info("This invitation was already accepted — they have already joined the circle!");
+          } else if (detailLower.includes("decline")) {
+            toast.info("This invitation was already declined by the recipient.");
+          } else {
+            toast.info(err.detail || "This invitation is no longer pending.");
+          }
+          return;
+        }
+
+        if (err.status === 403) {
+          toast.error("Only circle admins can revoke invitations.");
+          return;
+        }
+
+        if (err.status === 404) {
+          toast.error("Invitation or circle not found.");
+          return;
+        }
+      }
+
+      toast.error(getErrorMessage(err));
     },
   });
 
@@ -443,21 +509,26 @@ export default function GroupDetailPage() {
         </div>
 
         {/* Tab Navigation with Radix Animated Sliding Pills */}
-        <Tabs defaultValue="rounds" layoutId="circleDetailsTabs" className="w-full space-y-5">
+        <Tabs
+          value={activeTab}
+          onValueChange={(val) => setActiveTab(val as "rounds" | "members" | "invites")}
+          layoutId="circleDetailsTabs"
+          className="w-full space-y-5"
+        >
           <div className="border-b border-line dark:border-white/[0.08] pb-3">
-            <TabsList>
-              <TabsTrigger value="rounds">
+            <TabsList className="w-full sm:w-auto max-w-full overflow-x-auto no-scrollbar flex items-center justify-start gap-1 p-1">
+              <TabsTrigger value="rounds" className="shrink-0 whitespace-nowrap">
                 <Coins className="w-4 h-4" />
                 <span>Rounds ({rounds?.length ?? 0})</span>
               </TabsTrigger>
-              <TabsTrigger value="members">
+              <TabsTrigger value="members" className="shrink-0 whitespace-nowrap">
                 <Users className="w-4 h-4" />
                 <span>Members ({group.members?.length ?? 0})</span>
               </TabsTrigger>
-              {isAdmin && !isArchived && (
-                <TabsTrigger value="invites">
+              {isAdmin && (
+                <TabsTrigger value="invites" className="shrink-0 whitespace-nowrap">
                   <UserPlus className="w-4 h-4" />
-                  <span>Pending Invites ({group.invites?.length ?? 0})</span>
+                  <span>Pending Invites ({pendingInvites.length})</span>
                 </TabsTrigger>
               )}
             </TabsList>
@@ -755,76 +826,24 @@ export default function GroupDetailPage() {
             </div>
           </TabsContent>
 
-          {/* Tab 3: Pending Invites (Admin only, active circles only) */}
-          {isAdmin && !isArchived && (
-            <TabsContent value="invites" className="space-y-4 m-0">
-              <div className="flex items-center justify-between">
+          {/* Tab 3: Pending Invites (Admin only) */}
+          {isAdmin && (
+            <TabsContent value="invites" className="space-y-6 m-0">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="font-heading font-bold text-sm text-ink">
-                    Pending Invitations ({group.invites?.length || 0})
-                  </h3>
-                  <p className="text-xs text-muted">
-                    Invitations waiting to be accepted
-                  </p>
-                </div>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => {
-                    setInviteError(null);
-                    setInviteSuccess(null);
-                    setIsInviteModalOpen(true);
-                  }}
-                >
-                  <UserPlus className="w-3.5 h-3.5 mr-1.5" />
-                  Invite Member
-                </Button>
-              </div>
-
-              {group.invites && group.invites.length > 0 ? (
-                <div className="space-y-3">
-                  {group.invites.map((invite) => (
-                    <Card key={invite.id} className="p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-canvas dark:bg-[#0C0F14] border border-line dark:border-white/12 text-muted flex items-center justify-center">
-                          <Clock className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <span className="font-medium text-sm text-ink block tabular-nums">
-                            {invite.phone}
-                          </span>
-                          <span className="text-xs text-muted">
-                            Invited by {invite.inviterName || "Admin"} • {new Date(invite.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <Badge variant="warning">Pending</Badge>
-                        <SimpleTooltip content="Revoke invitation">
-                          <button
-                            onClick={() => setInviteToRevoke({ id: invite.id, phone: invite.phone })}
-                            className="p-1.5 text-muted hover:text-danger rounded-lg transition-colors touch-press"
-                            aria-label="Revoke invitation"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </SimpleTooltip>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <Card className="p-8 text-center space-y-3 border-dashed border-2">
-                  <div className="w-12 h-12 rounded-xl bg-primary-tint text-primary flex items-center justify-center mx-auto mb-2">
-                    <UserPlus className="w-6 h-6" />
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-heading font-bold text-base text-ink">
+                      Pending Invitations
+                    </h3>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 tabular-nums">
+                      {pendingInvites.length}
+                    </span>
                   </div>
-                  <h4 className="font-heading font-bold text-base text-ink">
-                    No pending invitations
-                  </h4>
-                  <p className="text-xs text-muted max-w-sm mx-auto">
-                    Invite colleagues, friends, or family by their Nigerian phone number to join this circle.
+                  <p className="text-xs text-muted mt-0.5">
+                    Invitations waiting to be accepted by recipient members
                   </p>
+                </div>
+                {!isArchived ? (
                   <Button
                     variant="primary"
                     size="sm"
@@ -833,11 +852,217 @@ export default function GroupDetailPage() {
                       setInviteSuccess(null);
                       setIsInviteModalOpen(true);
                     }}
+                    className="self-start sm:self-auto"
                   >
                     <UserPlus className="w-3.5 h-3.5 mr-1.5" />
-                    Invite First Member
+                    Invite Member
                   </Button>
+                ) : (
+                  <Badge variant="neutral" className="self-start sm:self-auto">
+                    Circle Archived (Read-Only)
+                  </Badge>
+                )}
+              </div>
+
+              {isInvitesLoading ? (
+                <div className="space-y-3">
+                  <CardSkeleton />
+                  <CardSkeleton />
+                </div>
+              ) : pendingInvites.length > 0 ? (
+                <div className="space-y-3">
+                  {pendingInvites.map((invite) => {
+                    const isRevoking =
+                      revokeInviteMutation.isPending &&
+                      revokeInviteMutation.variables === invite.id;
+
+                    return (
+                      <Card
+                        key={invite.id}
+                        className="p-4 sm:p-4.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 hover:border-amber-500/30 dark:hover:border-amber-400/25 transition-all duration-200"
+                      >
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          {/* Animated Icon Avatar with Live Pulse */}
+                          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500/15 to-amber-500/5 dark:from-amber-400/20 dark:to-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-600 dark:text-amber-400 relative shrink-0 shadow-xs">
+                            <Send className="w-5 h-5" />
+                            <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+                            </span>
+                          </div>
+
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-heading font-bold text-base text-ink tracking-tight tabular-nums">
+                                {formatPhoneWithDashes(invite.phone)}
+                              </span>
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                                <Clock className="w-3 h-3" />
+                                Awaiting Response
+                              </span>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted mt-1">
+                              <span>
+                                Invited by <strong className="text-ink font-semibold">{invite.inviterName || "Admin"}</strong>
+                              </span>
+                              <span>•</span>
+                              <span title={new Date(invite.createdAt).toLocaleString()}>
+                                Sent {formatRelativeTime(invite.createdAt)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2.5 self-end sm:self-auto shrink-0 pl-14 sm:pl-0">
+                          {!isArchived && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={isRevoking}
+                              onClick={() => revokeInviteMutation.mutate(invite.id)}
+                              className="text-muted hover:text-danger hover:bg-danger/10 border border-line/60 dark:border-white/10 hover:border-danger/30 text-xs font-semibold px-3 py-1.5 h-auto touch-press transition-all"
+                            >
+                              {isRevoking ? (
+                                <span className="flex items-center gap-1.5">
+                                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                  Revoking...
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-1.5">
+                                  <UserX className="w-3.5 h-3.5" />
+                                  Revoke
+                                </span>
+                              )}
+                            </Button>
+                          )}
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              ) : (
+                <Card className="p-8 sm:p-10 text-center space-y-4 border-dashed border-2 border-line/80 dark:border-white/10 bg-canvas/40 dark:bg-white/[0.01]">
+                  <div className="w-14 h-14 rounded-2xl bg-amber-500/10 dark:bg-amber-400/15 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto shadow-inner">
+                    <UserPlus className="w-7 h-7" />
+                  </div>
+                  <div className="space-y-1.5 max-w-sm mx-auto">
+                    <h4 className="font-heading font-bold text-base text-ink">
+                      No pending invitations
+                    </h4>
+                    <p className="text-xs text-muted leading-relaxed">
+                      All sent invitations have been processed, or none are currently awaiting response. Invite friends or family to join this circle.
+                    </p>
+                  </div>
+                  {!isArchived && (
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => {
+                        setInviteError(null);
+                        setInviteSuccess(null);
+                        setIsInviteModalOpen(true);
+                      }}
+                      className="mt-2"
+                    >
+                      <UserPlus className="w-3.5 h-3.5 mr-1.5" />
+                      Invite Member
+                    </Button>
+                  )}
                 </Card>
+              )}
+
+              {/* Secondary View: Past / Responded Invitations History */}
+              {historicalInvites.length > 0 && (
+                <div className="pt-6 border-t border-line/60 dark:border-white/10 space-y-3.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <History className="w-4 h-4 text-muted" />
+                      <h4 className="font-heading font-bold text-xs uppercase tracking-wider text-muted">
+                        Invitation History
+                      </h4>
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-line/60 dark:bg-white/10 text-muted">
+                        {historicalInvites.length}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {historicalInvites.map((invite) => {
+                      const isAccepted = invite.status === "ACCEPTED";
+                      const isDeclined = invite.status === "DECLINED";
+
+                      return (
+                        <div
+                          key={invite.id}
+                          className="p-3.5 rounded-xl border border-line/60 dark:border-white/10 bg-surface/60 dark:bg-[#14171B]/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs transition-colors hover:border-line dark:hover:border-white/20"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div
+                              className={cn(
+                                "w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border",
+                                isAccepted
+                                  ? "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border-emerald-500/20"
+                                  : isDeclined
+                                  ? "bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400 border-rose-500/20"
+                                  : "bg-slate-500/10 text-slate-500 dark:bg-white/5 dark:text-slate-400 border-slate-500/20"
+                              )}
+                            >
+                              {isAccepted ? (
+                                <CheckCircle2 className="w-4 h-4" />
+                              ) : isDeclined ? (
+                                <XCircle className="w-4 h-4" />
+                              ) : (
+                                <UserX className="w-4 h-4" />
+                              )}
+                            </div>
+
+                            <div className="min-w-0">
+                              <span className="font-semibold text-ink text-sm block tabular-nums">
+                                {formatPhoneWithDashes(invite.phone)}
+                              </span>
+                              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted mt-0.5">
+                                <span>
+                                  Invited by {invite.inviterName || "Admin"}
+                                </span>
+                                <span>•</span>
+                                <span title={new Date(invite.createdAt).toLocaleString()}>
+                                  Sent {formatRelativeTime(invite.createdAt)}
+                                </span>
+                                {invite.respondedAt && (
+                                  <>
+                                    <span>•</span>
+                                    <span title={new Date(invite.respondedAt).toLocaleString()}>
+                                      Responded {formatRelativeTime(invite.respondedAt)}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 pl-12 sm:pl-0">
+                            <Badge
+                              variant={
+                                isAccepted
+                                  ? "positive"
+                                  : isDeclined
+                                  ? "danger"
+                                  : "neutral"
+                              }
+                            >
+                              {isAccepted
+                                ? "Joined Circle"
+                                : isDeclined
+                                ? "Declined"
+                                : "Revoked"}
+                            </Badge>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
             </TabsContent>
           )}
@@ -1011,31 +1236,6 @@ export default function GroupDetailPage() {
           </div>
         </ConfirmationModal>
 
-        {/* Modal: Revoke Invite Confirmation */}
-        <ConfirmationModal
-          isOpen={!!inviteToRevoke}
-          onClose={() => setInviteToRevoke(null)}
-          onConfirm={() => {
-            if (inviteToRevoke) {
-              revokeInviteMutation.mutate(inviteToRevoke.id);
-            }
-          }}
-          title="Revoke Invitation"
-          confirmText="Revoke Invite"
-          variant="danger"
-          isLoading={revokeInviteMutation.isPending}
-          loadingText="Revoking..."
-          icon={<Trash2 className="w-4 h-4" />}
-        >
-          <div className="space-y-3">
-            <p className="text-sm text-ink font-medium">
-              Revoke invitation sent to <strong className="text-ink font-bold tabular-nums">{inviteToRevoke?.phone}</strong>?
-            </p>
-            <div className="p-3.5 rounded-xl bg-danger/10 border border-danger/20 text-xs text-muted leading-relaxed">
-              This invitation link will be invalidated immediately. If the user tries to accept, they will be notified that the invitation is no longer active.
-            </div>
-          </div>
-        </ConfirmationModal>
 
         {/* Modal: Delete / Archive Circle */}
         <DeleteGroupModal
