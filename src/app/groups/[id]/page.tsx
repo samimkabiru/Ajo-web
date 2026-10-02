@@ -544,7 +544,7 @@ export default function GroupDetailPage() {
                   <span className="text-xs font-semibold text-muted">
                     {rounds.length} {rounds.length === 1 ? "Round" : "Rounds"}
                   </span>
-                  <ViewToggle value={roundsViewMode} onChange={setRoundsViewMode} />
+                  <ViewToggle value={roundsViewMode} onChange={setRoundsViewMode} layoutId="groupRoundsViewToggle" />
                 </div>
 
                 {roundsViewMode === "grid" ? (

@@ -13,9 +13,13 @@ interface ViewToggleProps {
   value: ViewMode;
   onChange: (value: ViewMode) => void;
   className?: string;
+  layoutId?: string;
 }
 
-export function ViewToggle({ value, onChange, className }: ViewToggleProps) {
+export function ViewToggle({ value, onChange, className, layoutId }: ViewToggleProps) {
+  const generatedId = React.useId();
+  const pillLayoutId = layoutId || `view-toggle-pill-${generatedId}`;
+
   return (
     <div
       role="group"
@@ -37,7 +41,7 @@ export function ViewToggle({ value, onChange, className }: ViewToggleProps) {
         >
           {value === "grid" && (
             <motion.span
-              layoutId="activeViewTogglePill"
+              layoutId={pillLayoutId}
               className="absolute inset-0 rounded-[7px] bg-surface shadow-xs border border-line/60 z-0"
               transition={{ type: "spring", stiffness: 450, damping: 35 }}
             />
@@ -59,7 +63,7 @@ export function ViewToggle({ value, onChange, className }: ViewToggleProps) {
         >
           {value === "list" && (
             <motion.span
-              layoutId="activeViewTogglePill"
+              layoutId={pillLayoutId}
               className="absolute inset-0 rounded-[7px] bg-surface shadow-xs border border-line/60 z-0"
               transition={{ type: "spring", stiffness: 450, damping: 35 }}
             />

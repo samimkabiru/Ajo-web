@@ -86,10 +86,16 @@ export function NavHeader() {
             </Link>
 
             {/* Segmented Sliding Pill Navigation */}
-            <nav className="hidden sm:flex items-center p-1 rounded-[10px] bg-canvas dark:bg-[#0F1117] border border-line/60 dark:border-white/10 relative">
+            <motion.nav
+              layoutRoot
+              className="hidden sm:flex items-center p-1 rounded-[10px] bg-canvas dark:bg-[#0F1117] border border-line/60 dark:border-white/10 relative"
+            >
               {navLinks.map((link) => {
                 const Icon = link.icon;
-                const isActive = pathname.startsWith(link.href);
+                const isActive =
+                  link.href === "/groups"
+                    ? pathname.startsWith("/groups") || pathname.startsWith("/rounds")
+                    : pathname.startsWith(link.href);
                 return (
                   <Link
                     key={link.href}
@@ -103,7 +109,12 @@ export function NavHeader() {
                       <motion.span
                         layoutId="activeNavPill"
                         className="absolute inset-0 rounded-[7px] bg-surface dark:bg-[#1E2330] shadow-xs border border-[#E5E7EB] dark:border-indigo-400/20 z-0"
-                        transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 450,
+                          damping: 35,
+                          y: { duration: 0 },
+                        }}
                       />
                     )}
                     <Icon
@@ -116,7 +127,7 @@ export function NavHeader() {
                   </Link>
                 );
               })}
-            </nav>
+            </motion.nav>
           </div>
 
           {/* Right Actions: Theme, Phone Status & Profile */}
@@ -223,10 +234,16 @@ export function MobileBottomNav() {
   ];
 
   return (
-    <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/90 dark:bg-[#171B22]/92 backdrop-blur-xl border-t border-line/60 dark:border-white/[0.07] px-4 py-1.5 flex items-center justify-around shadow-elevation">
+    <motion.nav
+      layoutRoot
+      className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/90 dark:bg-[#171B22]/92 backdrop-blur-xl border-t border-line/60 dark:border-white/[0.07] px-4 py-1.5 flex items-center justify-around shadow-elevation"
+    >
       {navLinks.map((link) => {
         const Icon = link.icon;
-        const isActive = pathname.startsWith(link.href);
+        const isActive =
+          link.href === "/groups"
+            ? pathname.startsWith("/groups") || pathname.startsWith("/rounds")
+            : pathname.startsWith(link.href);
         return (
           <Link
             key={link.href}
@@ -240,7 +257,12 @@ export function MobileBottomNav() {
               <motion.span
                 layoutId="mobileNavPill"
                 className="absolute inset-0 rounded-[9px] bg-indigo-50 dark:bg-indigo-500/12 z-0"
-                transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 450,
+                  damping: 35,
+                  y: { duration: 0 },
+                }}
               />
             )}
             <Icon className="w-4 h-4 relative z-10" />
@@ -248,6 +270,6 @@ export function MobileBottomNav() {
           </Link>
         );
       })}
-    </nav>
+    </motion.nav>
   );
 }

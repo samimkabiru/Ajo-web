@@ -160,7 +160,7 @@ export default function DashboardPage() {
                   <h3 className="font-heading font-bold text-lg text-ink">
                     Your Circles
                   </h3>
-                  <ViewToggle value={viewMode} onChange={setViewMode} />
+                  <ViewToggle value={viewMode} onChange={setViewMode} layoutId="dashboardViewToggle" />
                 </div>
                 <Link
                   href="/groups"

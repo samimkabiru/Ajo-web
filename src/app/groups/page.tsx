@@ -85,7 +85,7 @@ export default function GroupsPage() {
 
           <div className="flex items-center gap-3">
             {currentGroups && currentGroups.length > 0 && (
-              <ViewToggle value={viewMode} onChange={setViewMode} />
+              <ViewToggle value={viewMode} onChange={setViewMode} layoutId="groupsViewToggle" />
             )}
             {!isArchived && (
               <Button

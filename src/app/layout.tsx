@@ -7,6 +7,7 @@ import { ColdStartProvider } from "@/components/common/cold-start-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { TooltipProvider, GlobalTooltipSuppressor } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
+import { AppNavigationShell } from "@/components/common/app-navigation-shell";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -58,7 +59,7 @@ export default function RootLayout({
               <ColdStartProvider>
                 <TooltipProvider delayDuration={150}>
                   <GlobalTooltipSuppressor />
-                  {children}
+                  <AppNavigationShell>{children}</AppNavigationShell>
                   <Toaster />
                 </TooltipProvider>
               </ColdStartProvider>
